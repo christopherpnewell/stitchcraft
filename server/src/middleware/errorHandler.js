@@ -1,6 +1,7 @@
 /**
  * Global error handler — never expose internals to the client.
  */
+import { config } from '../services/config.js';
 
 export function errorHandler(err, req, res, _next) {
   // Log the full error server-side
@@ -13,7 +14,7 @@ export function errorHandler(err, req, res, _next) {
 
   // Multer-specific errors
   if (err.code === 'LIMIT_FILE_SIZE') {
-    return res.status(413).json({ error: 'File exceeds the 10MB size limit' });
+    return res.status(413).json({ error: `File exceeds the ${config.maxFileSizeMB}MB size limit` });
   }
   if (err.code === 'LIMIT_UNEXPECTED_FILE') {
     return res.status(400).json({ error: 'Unexpected file field' });

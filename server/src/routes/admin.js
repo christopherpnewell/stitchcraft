@@ -42,7 +42,8 @@ function requireAuth(req, res, next) {
   }
 
   const decoded = Buffer.from(auth.slice(6), 'base64').toString();
-  const [, password] = decoded.split(':');
+  const sepIdx = decoded.indexOf(':');
+  const password = sepIdx >= 0 ? decoded.slice(sepIdx + 1) : '';
 
   // Timing-safe comparison to prevent timing attacks
   const given = Buffer.from(password || '');

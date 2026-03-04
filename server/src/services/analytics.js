@@ -53,6 +53,18 @@ export function trackEvent(eventType, data = {}) {
 }
 
 /**
+ * Close the analytics database for graceful shutdown.
+ */
+export function closeDb() {
+  try {
+    if (db) {
+      db.close();
+      db = null;
+    }
+  } catch { /* best-effort */ }
+}
+
+/**
  * Get analytics summary for admin dashboard.
  */
 export function getAnalyticsSummary(days = 30) {

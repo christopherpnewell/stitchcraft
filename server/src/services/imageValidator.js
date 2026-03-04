@@ -26,7 +26,6 @@ const SIGNATURES = {
 };
 
 const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 /**
  * Check if buffer matches a magic byte signature
@@ -64,8 +63,9 @@ function detectImageType(buffer) {
  */
 export function validateUpload(file) {
   // Check file size
-  if (file.size > MAX_FILE_SIZE) {
-    return { valid: false, error: 'File exceeds 10MB size limit' };
+  const maxSize = config.maxFileSizeMB * 1024 * 1024;
+  if (file.size > maxSize) {
+    return { valid: false, error: `File exceeds ${config.maxFileSizeMB}MB size limit` };
   }
 
   // Check extension

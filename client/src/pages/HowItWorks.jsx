@@ -12,7 +12,7 @@ export default function HowItWorks() {
     name: 'How to Turn an Image into a Knitting Pattern',
     description: 'Convert any image into a professional colorwork knitting chart in three simple steps using Knit It.',
     step: [
-      { '@type': 'HowToStep', name: 'Upload Your Image', text: 'Drag and drop or tap to select a JPEG, PNG, or WebP image (up to 10 MB). Knit It analyzes the image to suggest optimal settings.' },
+      { '@type': 'HowToStep', name: 'Upload Your Image', text: 'Drag and drop or tap to select a JPEG, PNG, WebP, or GIF image (up to 10 MB). Knit It analyzes the image to suggest optimal settings.' },
       { '@type': 'HowToStep', name: 'Customize Your Pattern', text: 'Adjust width, number of yarn colors, yarn weight gauge preset, and project type. Toggle options like background removal and detail enhancement.' },
       { '@type': 'HowToStep', name: 'Preview & Download', text: 'Knit It generates a pixel-perfect colorwork chart with accurate stitch aspect ratio. Download a print-ready PDF with chart, legend, yardage estimates, and construction notes.' },
     ],
@@ -37,7 +37,7 @@ export default function HowItWorks() {
       <div className="space-y-10">
         <Step number={1} title="Upload Your Image">
           <p>
-            Drag and drop or tap to select a JPEG, PNG, or WebP image (up to 10 MB).
+            Drag and drop or tap to select a JPEG, PNG, WebP, or GIF image (up to 10 MB).
             Knit It analyzes the image to suggest optimal grid width, number of colors,
             and whether background removal would help.
           </p>

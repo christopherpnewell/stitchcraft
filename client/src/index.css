@@ -7,3 +7,10 @@
     @apply min-h-screen;
   }
 }
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin {
+    animation: none;
+  }
+}

@@ -44,9 +44,9 @@ export default function App() {
             </span>
           </Link>
           <nav aria-label="Main navigation" className="hidden sm:flex items-center gap-4 text-sm">
-            <Link to="/how-it-works" className="text-gray-500 hover:text-gray-700 transition-colors">How It Works</Link>
-            <Link to="/faq" className="text-gray-500 hover:text-gray-700 transition-colors">FAQ</Link>
-            <Link to="/about" className="text-gray-500 hover:text-gray-700 transition-colors">About</Link>
+            <Link to="/how-it-works" className="text-gray-500 hover:text-gray-700 transition-colors rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">How It Works</Link>
+            <Link to="/faq" className="text-gray-500 hover:text-gray-700 transition-colors rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">FAQ</Link>
+            <Link to="/about" className="text-gray-500 hover:text-gray-700 transition-colors rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">About</Link>
           </nav>
         </div>
       </header>
@@ -73,9 +73,9 @@ export default function App() {
 
       <footer className="border-t border-gray-100 mt-16 py-6 text-center text-xs text-gray-500 space-y-2">
         <nav aria-label="Footer navigation" className="flex justify-center gap-4 sm:hidden mb-2">
-          <Link to="/how-it-works" className="hover:text-gray-600">How It Works</Link>
-          <Link to="/faq" className="hover:text-gray-600">FAQ</Link>
-          <Link to="/about" className="hover:text-gray-600">About</Link>
+          <Link to="/how-it-works" className="hover:text-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">How It Works</Link>
+          <Link to="/faq" className="hover:text-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">FAQ</Link>
+          <Link to="/about" className="hover:text-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">About</Link>
         </nav>
         <p>Knit It — Image to Knitting Pattern Generator</p>
         <p>We collect anonymous usage statistics to improve Knit It. No images or personal information are stored.</p>
@@ -104,14 +104,7 @@ function HomePage() {
     document.title = 'Knit It — Image to Knitting Pattern Generator';
   }, []);
 
-  // Focus the settings panel after a successful upload
-  useEffect(() => {
-    if (status === 'uploaded' && settingsRef.current) {
-      settingsRef.current.focus();
-    }
-  }, [status]);
-
-  const showConfig = ['uploaded', 'generating', 'ready', 'error'].includes(status) && status !== 'idle';
+  const showConfig = ['generating', 'ready', 'error'].includes(status);
   const showPreview = (status === 'ready' || status === 'generating') && pattern;
   const downloadUrl = getDownloadUrl();
 
@@ -181,7 +174,7 @@ function HomePage() {
       )}
 
       {/* Upload area */}
-      {(status === 'idle' || status === 'uploading') && (
+      {(status === 'idle' || status === 'uploading' || (status === 'error' && !pattern)) && (
         <div className="max-w-xl mx-auto">
           <ImageUpload onUpload={upload} status={status} />
         </div>
@@ -281,17 +274,6 @@ function HomePage() {
               </>
             )}
 
-            {status === 'uploaded' && !pattern && (
-              <div className="flex items-center justify-center py-20 text-gray-400">
-                <div className="text-center">
-                  <svg className="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1} aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16M8 4v16M12 4v16M16 4v16" />
-                  </svg>
-                  <p>Configure your settings and hit<br /><span className="font-medium text-gray-500">Generate Pattern</span> to see the preview</p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}

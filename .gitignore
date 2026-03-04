@@ -10,3 +10,4 @@ Thumbs.db
 coverage/
 .vite/
 *.db
+test-image.png

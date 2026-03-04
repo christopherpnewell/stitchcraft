@@ -41,7 +41,7 @@ export default function ColorLegend({ pattern }) {
                       <a
                         href={color.affiliateUrl}
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel="noopener noreferrer nofollow sponsored"
                         className="inline-flex items-center gap-1 text-brand-600 hover:text-brand-700 whitespace-nowrap"
                         title="Buy on Amazon"
                       >

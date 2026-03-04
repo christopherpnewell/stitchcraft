@@ -83,23 +83,30 @@ router.post('/upload', uploadRateLimiter(), upload.single('image'), async (req, 
 
     const { id, path: imagePath } = await sanitizeAndSave(req.file.buffer, config.uploadDir);
 
-    // Analyze image for smart suggestions
-    let suggestions = null;
     try {
-      suggestions = await analyzeImage(imagePath);
-    } catch {
-      // Analysis is best-effort — don't fail the upload
+      // Analyze image for smart suggestions
+      let suggestions = null;
+      try {
+        suggestions = await analyzeImage(imagePath);
+      } catch {
+        // Analysis is best-effort — don't fail the upload
+      }
+
+      addToStore(id, {
+        imagePath,
+        bgRemovedPath: null,
+        createdAt: Date.now(),
+        pattern: null,
+        processing: false,
+      });
+
+      trackEvent('upload', { imageType: suggestions?.imageType, complexity: suggestions?.complexity });
+      res.json({ id, message: 'Image uploaded successfully', suggestions });
+    } catch (uploadErr) {
+      // Clean up the written file if subsequent steps fail
+      deleteImage(imagePath);
+      throw uploadErr;
     }
-
-    addToStore(id, {
-      imagePath,
-      bgRemovedPath: null,
-      createdAt: Date.now(),
-      pattern: null,
-    });
-
-    trackEvent('upload', { imageType: suggestions?.imageType, complexity: suggestions?.complexity });
-    res.json({ id, message: 'Image uploaded successfully', suggestions });
   } catch (err) {
     next(err);
   }
@@ -170,6 +177,18 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
 
     const session = patternStore.get(id);
 
+    // Reject concurrent generate requests for the same session
+    if (session.processing) {
+      return res.status(409).json({ error: 'A pattern is already being generated for this session. Please wait.' });
+    }
+
+    // Check that image files still exist (they may have been cleaned up)
+    if (!session.imagePath) {
+      return res.status(400).json({ error: 'Image was cleaned up. Please upload your image again.' });
+    }
+
+    session.processing = true;
+
     // Determine which image to use
     let processingPath = session.imagePath;
 
@@ -208,6 +227,8 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
       affiliateUrl: buildAffiliateUrl(color.yarnSuggestion),
     }));
 
+    // Store pattern with affiliate URLs for PDF generation
+    pattern.palette = paletteWithLinks;
     session.pattern = pattern;
 
     if (res.headersSent) return;
@@ -221,7 +242,7 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
       id,
       pattern: {
         grid: pattern.grid,
-        palette: paletteWithLinks,
+        palette: pattern.palette,
         widthStitches: pattern.widthStitches,
         heightRows: pattern.heightRows,
         stitchGauge: pattern.stitchGauge,
@@ -239,6 +260,9 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
   } finally {
     clearTimeout(timeout);
     safeRelease();
+    // Clear per-session processing lock
+    const s = patternStore.get(req.body?.id);
+    if (s) s.processing = false;
   }
 });
 
@@ -268,16 +292,6 @@ router.get('/download/:id', async (req, res, next) => {
     res.setHeader('Content-Disposition', `attachment; filename="KnitIt-Pattern-${id.slice(0, 8)}.pdf"`);
     res.setHeader('Content-Length', pdfBuffer.length);
     res.send(pdfBuffer);
-
-    // Clean up images after download
-    if (session.imagePath) {
-      deleteImage(session.imagePath);
-      session.imagePath = null;
-    }
-    if (session.bgRemovedPath) {
-      deleteImage(session.bgRemovedPath);
-      session.bgRemovedPath = null;
-    }
   } catch (err) {
     next(err);
   }

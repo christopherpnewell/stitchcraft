@@ -25,7 +25,7 @@ export const config = {
   minGridWidth: 20,
   maxGridWidth: 300,
   minColors: 2,
-  maxColors: 16,
+  maxColors: 12,
   minGauge: 5,
   maxGauge: 60,
 

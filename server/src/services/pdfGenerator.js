@@ -5,6 +5,7 @@
  * project-specific construction instructions.
  */
 import PDFDocument from 'pdfkit';
+import { getYardsPerStitch } from './patternGenerator.js';
 
 // Chart symbols to overlay on colored cells for B&W printing
 const SYMBOLS = [
@@ -220,7 +221,6 @@ function drawChartPages(doc, pattern) {
 
   const minCellSize = 4;
   if (cellWidth < minCellSize) cellWidth = minCellSize;
-  if (cellHeight < minCellSize) cellHeight = minCellSize;
   cellHeight = cellWidth / stitchAR;
 
   const colsPerPage = Math.floor(chartAreaWidth / cellWidth);
@@ -640,19 +640,20 @@ function getMaterialsList(projectType, pattern, totalYards, w, h) {
       break;
     case 'pillow': {
       // Back panel is roughly the same area as the front — estimate MC yardage for it
-      const pillowBackYards = Math.ceil(pattern.totalStitches * getYardsPerStitchPdf(pattern.stitchGauge) * 1.15);
+      const pillowBackYards = Math.ceil(pattern.totalStitches * getYardsPerStitch(pattern.stitchGauge) * 1.15);
       extras.push(`Total yarn: ~${totalYards + pillowBackYards} yards (includes ~${pillowBackYards} yards MC for solid back panel)`);
       extras.push(`Pillow form: ${Math.round(w) + 1}" × ${Math.round(h) + 1}" (1" larger for plump fit)`);
       extras.push('Tapestry needle for seaming and weaving in ends');
       extras.push('Optional: zipper or buttons for removable cover');
       break;
     }
-    case 'wallHanging':
-      const pocketYards = Math.ceil(castOn * 10 * getYardsPerStitchPdf(pattern.stitchGauge) * 1.2);
+    case 'wallHanging': {
+      const pocketYards = Math.ceil(pattern.widthStitches * 10 * getYardsPerStitch(pattern.stitchGauge) * 1.2);
       extras.push(`Total yarn: ~${totalYards + pocketYards} yards (includes ~${pocketYards} yards MC for hanging rod pocket)`);
       extras.push(`Wooden dowel or branch: ${Math.round(w) + 2}" long`);
       extras.push('Cord or ribbon for hanging');
       break;
+    }
     case 'sweaterBack':
     case 'sweaterChestLeft':
     case 'sweaterChestRight':
@@ -660,7 +661,7 @@ function getMaterialsList(projectType, pattern, totalYards, w, h) {
       extras.push('Note: yarn amounts are for the chart only; sweater body yarn is separate');
       break;
     case 'toteBag': {
-      const toteBackYards = Math.ceil(pattern.totalStitches * getYardsPerStitchPdf(pattern.stitchGauge) * 1.15);
+      const toteBackYards = Math.ceil(pattern.totalStitches * getYardsPerStitch(pattern.stitchGauge) * 1.15);
       const handleYards = 50; // ~50 yards for two handles
       extras.push(`Total yarn: ~${totalYards + toteBackYards + handleYards} yards (includes ~${toteBackYards} yards MC for back panel and ~${handleYards} yards for handles)`);
       extras.push('Tapestry needle, pins');
@@ -672,14 +673,6 @@ function getMaterialsList(projectType, pattern, totalYards, w, h) {
   return [...yarnList, '', ...extras];
 }
 
-/** Estimate yards per stitch for PDF yardage calculations, matching patternGenerator logic. */
-function getYardsPerStitchPdf(stitchGauge) {
-  if (stitchGauge <= 14) return 0.037;
-  if (stitchGauge <= 20) return 0.025;
-  if (stitchGauge <= 24) return 0.021;
-  if (stitchGauge <= 26) return 0.017;
-  return 0.014;
-}
 
 function isLightColor(rgb) {
   return (rgb[0] * 0.299 + rgb[1] * 0.587 + rgb[2] * 0.114) > 140;

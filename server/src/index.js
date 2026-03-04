@@ -12,6 +12,7 @@ import { helmetMiddleware, csrfProtection, permissionsPolicy } from './middlewar
 import { errorHandler } from './middleware/errorHandler.js';
 import patternRoutes, { stopCleanup } from './routes/pattern.js';
 import adminRoutes from './routes/admin.js';
+import { closeDb } from './services/analytics.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -108,7 +109,7 @@ try {
   const knownRoutes = new Set(Object.keys(routeMeta));
 
   // SPA fallback — inject route-specific meta and ad config
-  app.get('*', async (req, res) => {
+  app.get('*', (req, res) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/admin')) return;
 
     // Normalize path: strip trailing slashes
@@ -160,9 +161,6 @@ try {
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${config.adsensePublisherId}" crossorigin="anonymous"></script>
     <script>window.__AD_SLOT_TOP__="${config.adSlotTop}";window.__AD_SLOT_SIDEBAR__="${config.adSlotSidebar}";</script>`;
       html = html.replace('</head>', `${adScript}\n  </head>`);
-    } else {
-      const noAdScript = `<script>window.__AD_SLOT_TOP__="";window.__AD_SLOT_SIDEBAR__="";</script>`;
-      html = html.replace('</head>', `${noAdScript}\n  </head>`);
     }
 
     res.setHeader('Content-Type', 'text/html');
@@ -187,8 +185,8 @@ const server = app.listen(config.port, () => {
 // Graceful shutdown
 function shutdown(signal) {
   console.log(`\n${signal} received. Shutting down gracefully...`);
-  // Stop pattern store cleanup interval
   stopCleanup();
+  closeDb();
   server.close(() => {
     console.log('HTTP server closed.');
     process.exit(0);

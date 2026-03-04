@@ -56,7 +56,7 @@ export async function generatePattern(imagePath, config) {
   // Each stitch cell is stitchAspectRatio times as wide as it is tall
   // So for the image to look correct, we need:
   // heightRows = widthStitches / (imgAspect * stitchAspectRatio)
-  const heightRows = Math.round(widthStitches / (imgAspect * stitchAspectRatio));
+  const heightRows = Math.max(1, Math.round(widthStitches / (imgAspect * stitchAspectRatio)));
 
   // Build the Sharp pipeline
   let pipeline = sharp(imagePath);
@@ -166,7 +166,7 @@ export async function generatePattern(imagePath, config) {
  * Estimate yards per stitch based on stitch gauge (stitches per 4 inches).
  * Heavier yarns use more yardage per stitch.
  */
-function getYardsPerStitch(stitchGauge) {
+export function getYardsPerStitch(stitchGauge) {
   // Values ~15% higher than plain stockinette to account for stranded colorwork
   if (stitchGauge <= 14) return 0.037;      // Bulky
   if (stitchGauge <= 20) return 0.025;      // Worsted

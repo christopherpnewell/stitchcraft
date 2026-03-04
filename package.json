@@ -12,7 +12,7 @@
     "audit": "npm audit"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.5.0"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

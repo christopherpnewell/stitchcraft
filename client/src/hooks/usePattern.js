@@ -47,8 +47,15 @@ export function usePattern() {
         body: JSON.stringify({ id, ...config }),
       });
 
+      if (!res.ok) {
+        const ct = res.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          const data = await res.json();
+          throw new Error(data.error || 'Generation failed');
+        }
+        throw new Error('Server error. Please try again.');
+      }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Generation failed');
 
       setPattern(data.pattern);
       setStatus('ready');
@@ -75,7 +82,10 @@ export function usePattern() {
       formData.append('image', file);
 
       // Ensure CSRF cookie is set via a safe GET request
-      await fetch('/api/csrf', { credentials: 'same-origin' }).catch(() => {});
+      const csrfRes = await fetch('/api/csrf', { credentials: 'same-origin' }).catch(() => null);
+      if (!csrfRes || !csrfRes.ok) {
+        throw new Error('Unable to reach server. Please check your connection and try again.');
+      }
 
       const res = await fetch('/api/upload', {
         method: 'POST',
@@ -84,8 +94,15 @@ export function usePattern() {
         headers: { 'X-CSRF-Token': getCsrfToken() },
       });
 
+      if (!res.ok) {
+        const ct = res.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Upload failed');
+        }
+        throw new Error('Server error. Please try again.');
+      }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Upload failed');
 
       setSessionId(data.id);
       setUploadedFileName(file.name);

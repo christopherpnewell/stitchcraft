@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 const FAQS = [
   {
     q: 'What file types can I upload?',
-    a: 'JPEG, PNG, and WebP images up to 10 MB. For best results, use a clear image with good contrast.',
+    a: 'JPEG, PNG, WebP, and GIF images up to 10 MB. For best results, use a clear image with good contrast.',
   },
   {
     q: 'How wide should I make my pattern?',
