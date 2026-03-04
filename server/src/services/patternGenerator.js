@@ -53,10 +53,11 @@ export async function generatePattern(imagePath, config) {
   const imgAspect = metadata.width / metadata.height;
 
   // Calculate grid height accounting for stitch aspect ratio
-  // Each stitch cell is stitchAspectRatio times as wide as it is tall
-  // So for the image to look correct, we need:
-  // heightRows = widthStitches / (imgAspect * stitchAspectRatio)
-  const heightRows = Math.max(1, Math.round(widthStitches / (imgAspect * stitchAspectRatio)));
+  // Physical width = widthStitches × (4/stitchGauge)
+  // Physical height = heightRows × (4/rowGauge)
+  // For correct proportions: physicalWidth / physicalHeight = imgAspect
+  // Solving: heightRows = widthStitches × stitchAspectRatio / imgAspect
+  const heightRows = Math.max(1, Math.round((widthStitches * stitchAspectRatio) / imgAspect));
 
   // Build the Sharp pipeline
   let pipeline = sharp(imagePath);

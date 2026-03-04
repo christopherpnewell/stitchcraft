@@ -64,12 +64,13 @@ function initCentroids(pixels, k) {
  * @returns {{ palette: number[][], assignments: number[] }}
  */
 export function kMeansQuantize(pixels, k, maxIter = 30) {
-  if (pixels.length === 0) return { palette: [], assignments: [] };
+  if (pixels.length === 0) return { palette: [], assignments: [], counts: [] };
   if (k >= pixels.length) {
     // More colors requested than pixels — each pixel is its own color
     return {
       palette: pixels.map(p => [...p]),
       assignments: pixels.map((_, i) => i),
+      counts: pixels.map(() => 1),
     };
   }
 
@@ -249,8 +250,8 @@ const YARN_DATABASE = [
 function gaugeToWeight(stitchGauge) {
   if (!stitchGauge || stitchGauge <= 14) return 'bulky';
   if (stitchGauge <= 20) return 'worsted';
-  if (stitchGauge <= 24) return 'dk';
-  if (stitchGauge <= 26) return 'fingering'; // sport-weight uses fingering yarn entries
+  if (stitchGauge <= 23) return 'dk';
+  if (stitchGauge <= 27) return 'fingering'; // sport-weight uses fingering yarn entries
   return 'fingering';
 }
 

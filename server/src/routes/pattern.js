@@ -53,7 +53,7 @@ const cleanupInterval = setInterval(() => {
   const now = Date.now();
   const TTL = 30 * 60 * 1000;
   for (const [id, entry] of patternStore) {
-    if (now - entry.createdAt > TTL) {
+    if (now - entry.createdAt > TTL && !entry.processing) {
       if (entry.imagePath) deleteImage(entry.imagePath);
       if (entry.bgRemovedPath) deleteImage(entry.bgRemovedPath);
       patternStore.delete(id);
@@ -132,6 +132,9 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
   // Set up a processing timeout
   const timeout = setTimeout(() => {
     safeRelease();
+    // Clear processing lock so retries aren't blocked
+    const sess = patternStore.get(req.body?.id);
+    if (sess) sess.processing = false;
     if (!res.headersSent) {
       res.status(504).json({ error: 'Processing took too long. Try a smaller grid size or fewer colors.' });
     }

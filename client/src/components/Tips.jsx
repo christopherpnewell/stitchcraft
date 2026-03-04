@@ -8,7 +8,7 @@ const TIPS = [
   { text: 'Use the zoom controls on the preview to inspect individual stitches before downloading.', context: 'general' },
   { text: 'Print your pattern at actual size. The PDF is designed for letter/A4 paper.', context: 'general' },
   { text: 'Use stitch markers every 10 stitches to stay on track with complex colorwork.', context: 'knitting' },
-  { text: 'Read every row of the chart left to right as displayed — the chart is pre-oriented for you.', context: 'knitting' },
+  { text: 'For circular knitting, read every chart row right to left. For flat knitting, read RS (odd) rows right to left and WS (even) rows left to right.', context: 'knitting' },
   { text: 'Check your gauge swatch before starting! Finished dimensions depend on matching the pattern gauge.', context: 'knitting' },
   { text: 'For intarsia (large color blocks), use separate yarn lengths. For Fair Isle (repeating patterns), carry yarns across the back.', context: 'knitting' },
 ];

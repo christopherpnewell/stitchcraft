@@ -110,7 +110,7 @@ try {
 
   // SPA fallback — inject route-specific meta and ad config
   app.get('*', (req, res) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/admin')) return;
+    if (req.path.startsWith('/api') || req.path.startsWith('/admin')) return next();
 
     // Normalize path: strip trailing slashes
     const cleanPath = req.path.replace(/\/+$/, '') || '/';

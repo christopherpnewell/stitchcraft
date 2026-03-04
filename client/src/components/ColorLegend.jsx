@@ -28,7 +28,7 @@ export default function ColorLegend({ pattern }) {
                       className="w-6 h-6 rounded border border-gray-300 shadow-sm flex-shrink-0"
                       style={{ backgroundColor: color.hex }}
                     />
-                    <span className="text-xs text-gray-500 font-mono">{color.hex}</span>
+                    <span className="text-xs text-gray-600">{color.colorName}</span>
                   </div>
                 </td>
                 <td className="px-3 py-2 font-medium text-gray-700">{color.label}</td>

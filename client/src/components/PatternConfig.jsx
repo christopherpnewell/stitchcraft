@@ -209,7 +209,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
       </div>
 
       {/* Stitch aspect ratio */}
-      <div className="text-xs text-gray-500 bg-gray-50 p-2.5 rounded-lg">
+      <div className="text-xs text-gray-600 bg-gray-50 p-2.5 rounded-lg">
         <span className="font-medium">Stitch ratio:</span>{' '}
         {stitchWidthIn.toFixed(3)}" wide x {stitchHeightIn.toFixed(3)}" tall
         (ratio {stitchAR.toFixed(2)}:1)

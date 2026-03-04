@@ -84,7 +84,9 @@ export default function ImageUpload({ onUpload, status }) {
       <div
         role="button"
         tabIndex={0}
-        aria-label="Upload an image file. Click or drag and drop."
+        aria-label={isUploading ? 'Image is uploading, please wait' : 'Upload an image file. Click or drag and drop.'}
+        aria-disabled={isUploading}
+        aria-busy={isUploading}
         onClick={!isUploading ? handleClick : undefined}
         onKeyDown={!isUploading ? handleKeyDown : undefined}
         onDrop={!isUploading ? handleDrop : undefined}

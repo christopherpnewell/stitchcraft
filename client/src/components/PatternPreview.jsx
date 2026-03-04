@@ -186,7 +186,7 @@ export default function PatternPreview({ pattern }) {
           <button
             onClick={() => setZoom(z => Math.max(0.25, z - 0.25))}
             aria-label="Zoom out"
-            className="w-11 h-11 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold"
+            className="w-11 h-11 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1"
           >
             -
           </button>
@@ -194,14 +194,14 @@ export default function PatternPreview({ pattern }) {
           <button
             onClick={() => setZoom(z => Math.min(4, z + 0.25))}
             aria-label="Zoom in"
-            className="w-11 h-11 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold"
+            className="w-11 h-11 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1"
           >
             +
           </button>
           <button
             onClick={() => setZoom(1)}
             aria-label="Reset zoom to fit"
-            className="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs text-gray-600"
+            className="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1"
           >
             Fit
           </button>
@@ -210,7 +210,10 @@ export default function PatternPreview({ pattern }) {
 
       <div
         ref={containerRef}
-        className="overflow-auto border border-gray-200 rounded-xl bg-white shadow-inner"
+        tabIndex={0}
+        role="region"
+        aria-label="Scrollable pattern chart"
+        className="overflow-auto border border-gray-200 rounded-xl bg-white shadow-inner focus:outline-none focus:ring-2 focus:ring-brand-500"
         style={{ maxHeight: '65vh' }}
       >
         <canvas

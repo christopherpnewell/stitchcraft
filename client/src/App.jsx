@@ -247,7 +247,7 @@ function HomePage() {
           {/* Right area — preview */}
           <div className="space-y-6">
             {status === 'generating' && !pattern && (
-              <div className="flex items-center justify-center py-20">
+              <div role="status" className="flex items-center justify-center py-20">
                 <div className="text-center">
                   <svg className="animate-spin h-10 w-10 text-brand-500 mx-auto mb-4" viewBox="0 0 24 24" aria-hidden="true">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
@@ -301,6 +301,10 @@ function HomePage() {
 }
 
 function NotFound() {
+  useEffect(() => {
+    document.title = 'Page Not Found — Knit It';
+  }, []);
+
   return (
     <main id="main-content" className="max-w-xl mx-auto px-4 py-20 text-center">
       <h1 className="text-4xl font-display font-bold text-gray-900 mb-3">404</h1>
