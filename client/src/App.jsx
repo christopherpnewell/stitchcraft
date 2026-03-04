@@ -267,19 +267,7 @@ function HomePage() {
 
             {/* Download button */}
             {pattern && downloadUrl && (
-              <a
-                href={downloadUrl}
-                download
-                aria-label="Download PDF knitting pattern"
-                className="
-                  block w-full py-3 rounded-xl text-center font-semibold text-base
-                  bg-gray-900 text-white hover:bg-gray-800 transition-colors shadow-sm
-                  hover:shadow-md active:scale-[0.98]
-                  focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-                "
-              >
-                Download PDF Pattern
-              </a>
+              <DownloadButton url={downloadUrl} />
             )}
 
             {/* Sidebar ad */}
@@ -358,6 +346,67 @@ function NotFound() {
         Back to Home
       </Link>
     </main>
+  );
+}
+
+function DownloadButton({ url }) {
+  const [dlState, setDlState] = useState('idle'); // idle | downloading | done | error
+
+  const handleDownload = async () => {
+    setDlState('downloading');
+    try {
+      const res = await fetch(url, { credentials: 'same-origin' });
+      if (!res.ok) throw new Error('Download failed');
+      const blob = await res.blob();
+      const objUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objUrl;
+      a.download = 'knit-it-pattern.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objUrl);
+      setDlState('done');
+      setTimeout(() => setDlState('idle'), 2000);
+    } catch {
+      setDlState('error');
+      setTimeout(() => setDlState('idle'), 3000);
+    }
+  };
+
+  const label = {
+    idle: 'Download PDF Pattern',
+    downloading: 'Preparing PDF...',
+    done: 'Downloaded!',
+    error: 'Download failed — try again',
+  }[dlState];
+
+  return (
+    <button
+      onClick={handleDownload}
+      disabled={dlState === 'downloading'}
+      aria-label="Download PDF knitting pattern"
+      className={`
+        flex items-center justify-center gap-2 w-full py-3 rounded-xl text-center font-semibold text-base
+        transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+        ${dlState === 'downloading'
+          ? 'bg-gray-400 text-white cursor-wait'
+          : dlState === 'done'
+            ? 'bg-green-600 text-white'
+            : dlState === 'error'
+              ? 'bg-red-600 text-white hover:bg-red-700'
+              : 'bg-gray-900 text-white hover:bg-gray-800 hover:shadow-md active:scale-[0.98]'
+        }
+      `}
+    >
+      {dlState === 'downloading' && (
+        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+        </svg>
+      )}
+      {label}
+    </button>
   );
 }
 
