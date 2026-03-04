@@ -187,16 +187,20 @@ function analyzeFloatLengths(grid, widthStitches) {
     let currentColor = row[0];
     let runLength = 1;
     let rowMaxFloat = 0;
+    let hadColorChange = false;
 
     for (let c = 1; c < widthStitches; c++) {
       if (row[c] === currentColor) {
         runLength++;
       } else {
+        hadColorChange = true;
         if (runLength > rowMaxFloat) rowMaxFloat = runLength;
         currentColor = row[c];
         runLength = 1;
       }
     }
+    // Only count floats in rows with multiple colors — single-color rows carry no second yarn
+    if (!hadColorChange) continue;
     if (runLength > rowMaxFloat) rowMaxFloat = runLength;
     if (rowMaxFloat > maxFloat) maxFloat = rowMaxFloat;
     if (rowMaxFloat > 5) rowsWithLongFloats++;

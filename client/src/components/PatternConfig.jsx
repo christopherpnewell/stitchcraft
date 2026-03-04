@@ -242,6 +242,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
         className={`
           w-full py-3 rounded-xl text-white font-semibold text-base
           transition-all duration-200 shadow-sm
+          focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
           ${isGenerating
             ? 'bg-gray-400 cursor-wait'
             : 'bg-brand-600 hover:bg-brand-700 hover:shadow-md active:scale-[0.98]'

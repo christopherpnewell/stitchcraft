@@ -185,9 +185,10 @@ function drawTitlePage(doc, pattern, projectInfo) {
   doc.fontSize(9).font('Helvetica').fillColor('#444');
   const instructions = [
     '• Each square on the chart represents one stitch. Columns = stitches, rows = rows.',
-    '• Row 1 is at the bottom of the chart. Read every row left to right as displayed.',
-    '• For flat knitting: RS (odd) rows are worked right to left; WS (even) rows left to right. The chart is oriented for RS reading — reverse stitch order on WS rows.',
-    '• Numbers along the sides mark every 5th row. Numbers along the bottom mark every 10th stitch.',
+    '• Row 1 is at the bottom of the chart.',
+    '• For circular knitting: read every row from right to left.',
+    '• For flat knitting: read RS (odd) rows right to left, WS (even) rows left to right.',
+    '• Numbers along the right side mark every 5th row. Numbers along the bottom mark every 10th stitch.',
     '• Each color has both a color fill and a symbol, so the chart is usable in both color and B&W printing.',
     '• MC = Main Color (most used). CC1, CC2, etc. = Contrast Colors.',
     `• Chart cells are drawn at the correct stitch aspect ratio for the specified gauge (${pattern.stitchGauge}st × ${pattern.rowGauge}rows per 4").`,
@@ -258,7 +259,7 @@ function drawChartPages(doc, pattern) {
 
       for (let r = 0; r < pageRows; r++) {
         for (let c = 0; c < pageCols; c++) {
-          const gridRow = heightRows - 1 - (startRow + (pageRows - 1 - r));
+          const gridRow = startRow + (pageRows - 1 - r);
           const gridCol = startCol + c;
 
           if (gridRow < 0 || gridRow >= heightRows) continue;

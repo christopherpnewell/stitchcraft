@@ -89,12 +89,12 @@ export default function FAQ() {
       <div className="mt-10 text-center space-y-3">
         <Link
           to="/"
-          className="inline-block px-6 py-3 bg-brand-600 text-white font-semibold rounded-xl hover:bg-brand-700 transition-colors"
+          className="inline-block px-6 py-3 bg-brand-600 text-white font-semibold rounded-xl hover:bg-brand-700 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
         >
           Try It Now
         </Link>
         <p className="text-sm text-gray-500">
-          Learn more: <Link to="/how-it-works" className="text-brand-600 hover:text-brand-700">How It Works</Link> | <Link to="/about" className="text-brand-600 hover:text-brand-700">About Knit It</Link>
+          Learn more: <Link to="/how-it-works" className="text-brand-600 hover:text-brand-700 underline rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">How It Works</Link> | <Link to="/about" className="text-brand-600 hover:text-brand-700 underline rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">About Knit It</Link>
         </p>
       </div>
     </main>

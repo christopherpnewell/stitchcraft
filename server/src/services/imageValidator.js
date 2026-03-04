@@ -110,7 +110,9 @@ export async function deleteImage(filePath) {
   try {
     const resolved = path.resolve(filePath);
     const uploadResolved = path.resolve(config.uploadDir);
-    if (!resolved.startsWith(uploadResolved + path.sep)) {
+    // On Windows, paths are case-insensitive — normalize for safe comparison
+    const norm = process.platform === 'win32' ? s => s.toLowerCase() : s => s;
+    if (!norm(resolved).startsWith(norm(uploadResolved) + path.sep)) {
       console.error('Attempted to delete file outside upload directory:', resolved);
       return;
     }

@@ -89,6 +89,7 @@ function HomePage() {
     status,
     error,
     pattern,
+    sessionId,
     uploadedFileName,
     suggestions,
     upload,
@@ -104,7 +105,7 @@ function HomePage() {
     document.title = 'Knit It — Image to Knitting Pattern Generator';
   }, []);
 
-  const showConfig = ['generating', 'ready', 'error'].includes(status);
+  const showConfig = ['generating', 'ready', 'error'].includes(status) && sessionId;
   const showPreview = (status === 'ready' || status === 'generating') && pattern;
   const downloadUrl = getDownloadUrl();
 
@@ -304,7 +305,7 @@ function NotFound() {
     <main id="main-content" className="max-w-xl mx-auto px-4 py-20 text-center">
       <h1 className="text-4xl font-display font-bold text-gray-900 mb-3">404</h1>
       <p className="text-gray-500 mb-6">The page you&apos;re looking for doesn&apos;t exist.</p>
-      <Link to="/" className="inline-block px-6 py-2 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700 transition-colors">
+      <Link to="/" className="inline-block px-6 py-2 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
         Back to Home
       </Link>
     </main>
