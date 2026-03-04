@@ -586,6 +586,24 @@ function drawConstructionPage(doc, pattern, projectType, projectInfo, totalPages
     }
   }
 
+  // Colorwork technique section (for all non-sweater-patch types)
+  const isSweaterPatch = projectType === 'sweaterChestLeft' || projectType === 'sweaterChestRight';
+  if (!isSweaterPatch) {
+    doc.moveDown(0.8);
+    doc.fontSize(10).font('Helvetica-Bold').fillColor('#000').text('Colorwork Technique');
+    doc.moveDown(0.3);
+    doc.fontSize(9).font('Helvetica').fillColor('#333');
+    const colorworkLines = [
+      '• Stranded colorwork (recommended for this pattern): Carry all yarn colors loosely across the wrong side of the work. Pick up each color as needed — do not cut yarn between color changes within a row.',
+      '• Float management: When a color is not used for more than 5 stitches in a row, catch the float by wrapping it around the working yarn every 3-5 stitches. This prevents long loops on the back that can snag fingers or distort the fabric.',
+      '• Tension: Keep floats loose. After every few stitches, spread the stitches on the right needle to their natural width before continuing. Tight floats cause puckering.',
+    ];
+    for (const line of colorworkLines) {
+      doc.text(line, PAGE.marginLeft + 10, doc.y, { width: CONTENT_WIDTH - 20 });
+      doc.moveDown(0.15);
+    }
+  }
+
   // Materials list
   doc.moveDown(1);
   doc.fontSize(10).font('Helvetica-Bold').fillColor('#000').text('Materials');
@@ -606,38 +624,48 @@ function drawConstructionPage(doc, pattern, projectType, projectInfo, totalPages
 function getConstructionInstructions(projectType, pattern, totalYards, w, h) {
   const castOn = pattern.widthStitches;
   const rows = pattern.heightRows;
+  const castOnLine = `• Cast on ${castOn} stitches using your preferred method. The long-tail cast on is recommended for its stretch and neat edge — search "long-tail cast on" for a step-by-step video if you're new to it.`;
+
+  const weaveInAndBlock = [
+    '## Finishing',
+    '• Weave in all ends on the WS: thread each tail on a tapestry needle, run through stitches of the same colour for at least 1", then double back in the opposite direction. Trim close.',
+    '• Block finished piece: soak in lukewarm water for 20 minutes, gently squeeze excess water into a towel (do not wring), pin to finished dimensions on a blocking mat, and allow to dry fully.',
+  ];
 
   switch (projectType) {
     case 'blanket':
       return [
-        `• Cast on ${castOn} stitches using long-tail cast on.`,
+        castOnLine,
+        '• Work in stockinette stitch: knit (k) all stitches on right-side (RS) rows; purl (p) all stitches on wrong-side (WS) rows.',
         `• Work the ${rows}-row colorwork chart from bottom to top.`,
         `• Bind off all stitches loosely in MC.`,
-        '• Weave in all ends on the WS, working each tail along the same color where possible.',
-        `• Finished dimensions: ${w}" × ${h}" (${cmFromInches(w)} × ${cmFromInches(h)} cm).`,
+        `• Finished dimensions: ${w}" x ${h}" (${cmFromInches(w)} x ${cmFromInches(h)} cm).`,
         '## Optional Border',
         '• Pick up stitches evenly around all four edges.',
         '• Work 4-6 rows of garter stitch in MC for a simple border.',
-        '• Bind off loosely. Block to measurements.',
+        '• Bind off loosely.',
+        ...weaveInAndBlock,
       ];
 
     case 'scarf':
       return [
-        `• Cast on ${castOn} stitches using long-tail cast on.`,
+        castOnLine,
+        '• Work in stockinette stitch: knit (k) all stitches on right-side (RS) rows; purl (p) all stitches on wrong-side (WS) rows.',
         `• Work the ${rows}-row colorwork chart from bottom to top.`,
         `• Chart width = scarf width (${w}").`,
-        '• For a longer scarf, repeat the chart pattern until desired length is reached.',
-        '• A typical scarf is 60-70" long. You may need to repeat the chart multiple times.',
+        '• Keep yarn tension even across color changes. After each color join, spread stitches on the right needle to their full width before pulling the new yarn through.',
+        `• This chart is ${h}" tall. To reach a 60" finished scarf, work the chart approximately ${Math.ceil(60 / parseFloat(h))} times total (or until desired length).`,
+        '• To prevent curling: work 3-4 rows of garter stitch (knit every row) at each end before and after the colorwork section.',
         '• Bind off all stitches loosely.',
-        '## Optional Border',
-        '• Add 3-4 rows of seed stitch or garter stitch at each end to prevent curling.',
+        '## Optional',
         '• Consider adding fringe: cut 8" lengths, attach in groups of 3-4 along each short edge.',
+        ...weaveInAndBlock,
       ];
 
     case 'pillow':
       return [
         '## Front Panel (Colorwork)',
-        `• Cast on ${castOn} stitches using long-tail cast on.`,
+        castOnLine,
         `• Work the ${rows}-row colorwork chart from bottom to top.`,
         '• Bind off all stitches loosely.',
         '## Back Panel (Solid)',
@@ -648,13 +676,14 @@ function getConstructionInstructions(projectType, pattern, totalYards, w, h) {
         '• Block both panels to matching dimensions.',
         '• Place panels with right sides together.',
         '• Seam three sides using mattress stitch.',
-        `• Insert a ${Math.round(w) + 1}" × ${Math.round(h) + 1}" pillow form (1" larger than finished dimensions for a plump fit).`,
+        `• Insert a ${Math.round(w) + 1}" x ${Math.round(h) + 1}" pillow form (1" larger than finished dimensions for a plump fit).`,
         '• Seam the fourth side, or add a zipper/button closure for removable cover.',
+        ...weaveInAndBlock,
       ];
 
     case 'wallHanging':
       return [
-        `• Cast on ${castOn} stitches using long-tail cast on.`,
+        castOnLine,
         `• Work the ${rows}-row colorwork chart from bottom to top.`,
         '• Bind off all stitches loosely.',
         '## Hanging Rod Pocket',
@@ -663,10 +692,9 @@ function getConstructionInstructions(projectType, pattern, totalYards, w, h) {
         '• Bind off loosely.',
         '• Fold the pocket strip in half lengthwise and sew it to the top back of the hanging.',
         '• Insert a dowel rod or branch (cut 1-2" wider than the hanging) through the pocket.',
-        '## Finishing',
-        '• Block the hanging flat. Let dry completely.',
-        '• Optional: add a fringe or tassel along the bottom edge.',
         '• Attach a cord or ribbon to each end of the rod for hanging.',
+        '• Optional: add a fringe or tassel along the bottom edge.',
+        ...weaveInAndBlock,
       ];
 
     case 'sweaterBack':
@@ -676,13 +704,14 @@ function getConstructionInstructions(projectType, pattern, totalYards, w, h) {
         '• Integrate this chart into your existing sweater pattern.',
         '• Adjust stitch counts to match your sweater pattern\'s gauge and width.',
         '## Placement Instructions',
-        `• Chart is ${castOn} stitches wide × ${rows} rows tall.`,
-        `• To center on the back panel of a sweater:`,
-        `• Calculate: (total back stitches - ${castOn}) ÷ 2 = stitches on each side in MC.`,
+        `• Chart is ${castOn} stitches wide x ${rows} rows tall.`,
+        '• To center on the back panel of a sweater:',
+        `• Calculate: (total back stitches - ${castOn}) / 2 = stitches on each side in MC.`,
         '• Example for a back panel of 80 stitches:',
         `•   Work ${Math.max(0, Math.floor((80 - castOn) / 2))} stitches in MC, work row 1 of chart over ${castOn} stitches, work remaining ${Math.max(0, Math.ceil((80 - castOn) / 2))} stitches in MC.`,
         '• Begin the chart at your desired row (typically after the ribbing and a few plain rows).',
         '• Work each chart row across the center stitches, maintaining MC on either side.',
+        ...weaveInAndBlock,
       ];
 
     case 'sweaterChestLeft':
@@ -694,22 +723,23 @@ function getConstructionInstructions(projectType, pattern, totalYards, w, h) {
         '• This is a small colorwork chart patch, NOT a full sweater pattern.',
         '• Integrate this chart into your existing sweater front pattern.',
         '## Placement Instructions',
-        `• Chart is ${castOn} stitches wide × ${rows} rows tall.`,
+        `• Chart is ${castOn} stitches wide x ${rows} rows tall.`,
         `• Position on the upper-${side} chest of the front panel.`,
         `• Offset from the ${sideInset}: approximately 2-3" (5-8 cm) inward.`,
-        `• Start the chart approximately 2" (5 cm) below the shoulder seam.`,
+        '• Start the chart approximately 2" (5 cm) below the shoulder seam.',
         '• Calculate your specific stitch offset based on your gauge:',
-        `•   Horizontal offset: inset stitches = (desired inches × stitches per inch)`,
-        `•   Vertical offset: inset rows = (desired inches × rows per inch)`,
-        `• Work background stitches in MC on either side of the chart.`,
+        '•   Horizontal offset: inset stitches = (desired inches x stitches per inch)',
+        '•   Vertical offset: inset rows = (desired inches x rows per inch)',
+        '• Work background stitches in MC on either side of the chart.',
         '• When not working chart rows, continue in MC across all stitches.',
+        ...weaveInAndBlock,
       ];
     }
 
     case 'toteBag':
       return [
         '## Front Panel (Colorwork)',
-        `• Cast on ${castOn} stitches using long-tail cast on.`,
+        castOnLine,
         `• Work the ${rows}-row colorwork chart from bottom to top.`,
         '• Bind off all stitches.',
         '## Back Panel (Solid)',
@@ -726,6 +756,7 @@ function getConstructionInstructions(projectType, pattern, totalYards, w, h) {
         '• Attach handles: pin each handle 2-3" inward from side seams on each panel.',
         '• Sew handle ends securely to the inside of the bag opening.',
         '• Optional: line the bag with fabric for structure.',
+        ...weaveInAndBlock,
       ];
 
     default:
@@ -733,6 +764,7 @@ function getConstructionInstructions(projectType, pattern, totalYards, w, h) {
         `• Cast on ${castOn} stitches.`,
         `• Work the ${rows}-row colorwork chart.`,
         '• Bind off all stitches loosely.',
+        ...weaveInAndBlock,
       ];
   }
 }
