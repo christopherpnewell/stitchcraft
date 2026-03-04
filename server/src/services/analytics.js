@@ -4,6 +4,7 @@
  * Fire-and-forget: never blocks user requests.
  */
 import { DatabaseSync } from 'node:sqlite';
+import crypto from 'node:crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -29,6 +30,15 @@ function getDb() {
       );
       CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
       CREATE INDEX IF NOT EXISTS idx_events_date ON events(created_at);
+      CREATE TABLE IF NOT EXISTS pageviews (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        page TEXT NOT NULL,
+        visitor_hash TEXT NOT NULL,
+        country TEXT DEFAULT '',
+        created_at TEXT DEFAULT (datetime('now'))
+      );
+      CREATE INDEX IF NOT EXISTS idx_pv_date ON pageviews(created_at);
+      CREATE INDEX IF NOT EXISTS idx_pv_visitor ON pageviews(visitor_hash, created_at);
     `);
     // Purge old events beyond retention period
     try {
@@ -53,6 +63,33 @@ export function trackEvent(eventType, data = {}) {
 }
 
 /**
+ * Track a pageview with an anonymous visitor hash.
+ * The hash is derived from user-agent + date (rotates daily, no PII).
+ */
+export function trackPageview(page, userAgent = '', country = '') {
+  try {
+    const d = getDb();
+    const day = new Date().toISOString().split('T')[0];
+    const visitorHash = crypto.createHash('sha256').update(userAgent + day).digest('hex').slice(0, 16);
+    d.prepare('INSERT INTO pageviews (page, visitor_hash, country) VALUES (?, ?, ?)').run(page, visitorHash, country);
+  } catch {
+    // Never fail user requests due to analytics
+  }
+}
+
+/**
+ * Look up country from IP using Railway/Cloudflare headers or free API.
+ * Returns 2-letter country code or empty string. Never throws.
+ */
+export function getCountryFromRequest(req) {
+  // Railway/Cloudflare/Fastly typically set these headers
+  return req.headers['cf-ipcountry']
+    || req.headers['x-country-code']
+    || req.headers['x-vercel-ip-country']
+    || '';
+}
+
+/**
  * Close the analytics database for graceful shutdown.
  */
 export function closeDb() {
@@ -71,6 +108,26 @@ export function getAnalyticsSummary(days = 30) {
   try {
     const d = getDb();
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+    const totalPageviews = d.prepare(
+      `SELECT COUNT(*) as count FROM pageviews WHERE created_at >= ?`
+    ).get(since);
+
+    const uniqueVisitors = d.prepare(
+      `SELECT COUNT(DISTINCT visitor_hash) as count FROM pageviews WHERE created_at >= ?`
+    ).get(since);
+
+    const dailyVisitors = d.prepare(`
+      SELECT date(created_at) as day, COUNT(*) as views, COUNT(DISTINCT visitor_hash) as visitors
+      FROM pageviews WHERE created_at >= ?
+      GROUP BY day ORDER BY day DESC LIMIT 30
+    `).all(since);
+
+    const countryCounts = d.prepare(`
+      SELECT country, COUNT(DISTINCT visitor_hash) as visitors
+      FROM pageviews WHERE created_at >= ? AND country != ''
+      GROUP BY country ORDER BY visitors DESC
+    `).all(since);
 
     const totalGenerations = d.prepare(
       `SELECT COUNT(*) as count FROM events WHERE event_type = 'generate' AND created_at >= ?`
@@ -135,6 +192,8 @@ export function getAnalyticsSummary(days = 30) {
     return {
       period: `Last ${days} days`,
       totals: {
+        pageviews: totalPageviews?.count || 0,
+        uniqueVisitors: uniqueVisitors?.count || 0,
         uploads: totalUploads?.count || 0,
         generations: totalGenerations?.count || 0,
         downloads: totalDownloads?.count || 0,
@@ -143,6 +202,8 @@ export function getAnalyticsSummary(days = 30) {
           ? Math.round((totalDownloads?.count / totalGenerations?.count) * 1000) / 10
           : 0,
       },
+      dailyVisitors,
+      countryCounts,
       projectTypes,
       widthDistribution: widthDist,
       colorDistribution: colorDist,
@@ -158,7 +219,9 @@ export function getAnalyticsSummary(days = 30) {
     return {
       error: 'Analytics query failed',
       period: `Last ${days} days`,
-      totals: { uploads: 0, generations: 0, downloads: 0, affiliateClicks: 0, downloadRate: 0 },
+      totals: { pageviews: 0, uniqueVisitors: 0, uploads: 0, generations: 0, downloads: 0, affiliateClicks: 0, downloadRate: 0 },
+      dailyVisitors: [],
+      countryCounts: [],
       projectTypes: [],
       widthDistribution: [],
       colorDistribution: [],

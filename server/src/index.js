@@ -12,7 +12,7 @@ import { helmetMiddleware, csrfProtection, permissionsPolicy, globalRateLimiter 
 import { errorHandler } from './middleware/errorHandler.js';
 import patternRoutes, { stopCleanup } from './routes/pattern.js';
 import adminRoutes from './routes/admin.js';
-import { closeDb } from './services/analytics.js';
+import { closeDb, trackPageview, getCountryFromRequest } from './services/analytics.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -187,6 +187,9 @@ try {
     <script>window.__AD_SLOT_TOP__="${config.adSlotTop}";window.__AD_SLOT_SIDEBAR__="${config.adSlotSidebar}";</script>`;
       html = html.replace('</head>', `${adConfig}\n  </head>`);
     }
+
+    // Track pageview
+    trackPageview(cleanPath, req.headers['user-agent'] || '', getCountryFromRequest(req));
 
     res.setHeader('Content-Type', 'text/html');
     res.setHeader('Cache-Control', 'no-cache');

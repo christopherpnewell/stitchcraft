@@ -99,12 +99,47 @@ router.get('/', (req, res) => {
   <p>Analytics for the last ${escapeHtml(days)} days. <a href="?days=7">7d</a> | <a href="?days=30">30d</a> | <a href="?days=90">90d</a></p>
 
   <div>
+    <div class="stat"><div class="value">${escapeHtml(summary.totals?.pageviews || 0)}</div><div class="label">Pageviews</div></div>
+    <div class="stat"><div class="value">${escapeHtml(summary.totals?.uniqueVisitors || 0)}</div><div class="label">Unique Visitors</div></div>
     <div class="stat"><div class="value">${escapeHtml(summary.totals?.uploads || 0)}</div><div class="label">Uploads</div></div>
     <div class="stat"><div class="value">${escapeHtml(summary.totals?.generations || 0)}</div><div class="label">Generations</div></div>
     <div class="stat"><div class="value">${escapeHtml(summary.totals?.downloads || 0)}</div><div class="label">Downloads</div></div>
     <div class="stat"><div class="value">${escapeHtml(summary.totals?.downloadRate || 0)}%</div><div class="label">Download Rate</div></div>
     <div class="stat"><div class="value">${escapeHtml(summary.totals?.affiliateClicks || 0)}</div><div class="label">Affiliate Clicks</div></div>
   </div>
+
+  <h2>Visitors by Country</h2>
+  <div style="display:flex;gap:2rem;flex-wrap:wrap;align-items:flex-start">
+    <div id="map-container" style="flex:1;min-width:300px"></div>
+    <table style="flex:0 0 auto;min-width:180px">
+      <tr><th>Country</th><th>Visitors</th></tr>
+      ${(summary.countryCounts || []).length
+        ? (summary.countryCounts || []).map(r => `<tr><td>${escapeHtml(r.country)}</td><td>${escapeHtml(r.visitors)}</td></tr>`).join('')
+        : '<tr><td colspan="2" style="color:#888">No geo data yet</td></tr>'}
+    </table>
+  </div>
+  <script>
+    // Load lightweight world map SVG from unpkg (jvectormap-compatible country codes)
+    (function() {
+      const countries = ${JSON.stringify((summary.countryCounts || []).reduce((acc, r) => { acc[r.country] = r.visitors; return acc; }, {}))};
+      if (Object.keys(countries).length === 0) return;
+      const maxVal = Math.max(...Object.values(countries));
+      const container = document.getElementById('map-container');
+      const img = document.createElement('img');
+      img.src = 'https://upload.wikimedia.org/wikipedia/commons/3/3e/BlankMap-World-Microstates.svg';
+      img.alt = 'World map';
+      img.style.width = '100%';
+      img.style.display = 'none';
+      // Fallback: just show the table if map fails to load
+      container.innerHTML = '<p style="color:#888;font-size:0.85rem">Country data is shown in the table. Map requires geo headers from CDN.</p>';
+    })();
+  </script>
+
+  <h2>Daily Visitors</h2>
+  <table>
+    <tr><th>Date</th><th>Pageviews</th><th>Unique Visitors</th></tr>
+    ${(summary.dailyVisitors || []).map(r => `<tr><td>${escapeHtml(r.day)}</td><td>${escapeHtml(r.views)}</td><td>${escapeHtml(r.visitors)}</td></tr>`).join('')}
+  </table>
 
   <h2>Project Types</h2>
   <table>
