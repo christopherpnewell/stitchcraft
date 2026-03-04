@@ -202,7 +202,12 @@ export default function PatternPreview({ pattern }) {
         className="overflow-auto border border-gray-200 rounded-xl bg-white shadow-inner"
         style={{ maxHeight: '65vh' }}
       >
-        <canvas ref={canvasRef} className="block" />
+        <canvas
+          ref={canvasRef}
+          className="block"
+          role="img"
+          aria-label={`Knitting pattern chart preview: ${pattern.widthStitches} stitches wide by ${pattern.heightRows} rows tall with ${pattern.palette.length} colors`}
+        />
       </div>
 
       {/* Pattern stats below preview */}

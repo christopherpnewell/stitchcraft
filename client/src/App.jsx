@@ -16,6 +16,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+      {/* Skip to content link for keyboard/screen reader users */}
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-md focus:text-brand-600 focus:font-medium">
+        Skip to content
+      </a>
+
       {/* Header */}
       <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
@@ -111,7 +116,7 @@ function HomePage() {
   };
 
   return (
-    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       {/* Start Over button */}
       {status !== 'idle' && (
         <div className="flex justify-end mb-4">
@@ -127,10 +132,10 @@ function HomePage() {
       {/* Hero section */}
       {status === 'idle' && (
         <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-display font-bold text-gray-900 mb-3">
+          <h1 className="text-3xl sm:text-4xl font-display font-bold text-gray-900 mb-3">
             Turn any image into a<br />
             <span className="text-brand-600">knitting pattern</span>
-          </h2>
+          </h1>
           <p className="text-gray-500 text-lg max-w-lg mx-auto">
             Upload a photo, drawing, or logo and get a professional colorwork chart
             with yarn estimates, gauge notes, and a print-ready PDF.
