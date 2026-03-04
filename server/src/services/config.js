@@ -34,8 +34,22 @@ export const config = {
   enableAds: process.env.ENABLE_ADS === 'true',
   adSlotTop: process.env.AD_SLOT_TOP || '',
   adSlotSidebar: process.env.AD_SLOT_SIDEBAR || '',
+
+  // Affiliate links (optional)
+  enableAffiliates: process.env.ENABLE_AFFILIATES === 'true',
+  affiliateTag: process.env.AFFILIATE_TAG || '',
 };
 
 export function getMaxFileSize() {
   return config.maxFileSizeMB * 1024 * 1024;
+}
+
+/**
+ * Build an Amazon affiliate search URL for a yarn name.
+ * Returns null if affiliates are disabled.
+ */
+export function buildAffiliateUrl(yarnName) {
+  if (!config.enableAffiliates || !config.affiliateTag) return null;
+  const query = encodeURIComponent(yarnName);
+  return `https://www.amazon.com/s?k=${query}&tag=${encodeURIComponent(config.affiliateTag)}`;
 }

@@ -394,10 +394,14 @@ function drawLegendPage(doc, pattern) {
     doc.fontSize(8).font('Helvetica').fillColor('#555')
       .text(`~${pattern.colorYardages[i]}`, cols.yardage, rowY + 7, { width: 45, lineBreak: false });
 
+    const yarnText = color.affiliateUrl
+      ? `${color.yarnSuggestion}\n${color.affiliateUrl}`
+      : color.yarnSuggestion;
     doc.fontSize(7).font('Helvetica').fillColor('#666')
-      .text(color.yarnSuggestion, cols.yarn, rowY + 4, {
+      .text(yarnText, cols.yarn, rowY + 4, {
         width: CONTENT_WIDTH - (cols.yarn - PAGE.marginLeft),
         lineBreak: true,
+        link: color.affiliateUrl || undefined,
       });
 
     doc.fillColor('#000');

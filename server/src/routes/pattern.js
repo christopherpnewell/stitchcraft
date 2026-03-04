@@ -8,7 +8,7 @@ import { generatePattern } from '../services/patternGenerator.js';
 import { generatePdf } from '../services/pdfGenerator.js';
 import { analyzeImage } from '../services/imageAnalyzer.js';
 import { removeImageBackground } from '../services/backgroundRemoval.js';
-import { config, getMaxFileSize } from '../services/config.js';
+import { config, getMaxFileSize, buildAffiliateUrl } from '../services/config.js';
 import { uploadRateLimiter } from '../middleware/security.js';
 
 const router = Router();
@@ -174,13 +174,20 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
     const validatedProjectType = validProjectTypes.includes(projectType) ? projectType : 'blanket';
 
     pattern.projectType = validatedProjectType;
+
+    // Add affiliate URLs to palette if enabled
+    const paletteWithLinks = pattern.palette.map(color => ({
+      ...color,
+      affiliateUrl: buildAffiliateUrl(color.yarnSuggestion),
+    }));
+
     session.pattern = pattern;
 
     res.json({
       id,
       pattern: {
         grid: pattern.grid,
-        palette: pattern.palette,
+        palette: paletteWithLinks,
         widthStitches: pattern.widthStitches,
         heightRows: pattern.heightRows,
         stitchGauge: pattern.stitchGauge,
