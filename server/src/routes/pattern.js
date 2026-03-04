@@ -10,6 +10,7 @@ import { analyzeImage } from '../services/imageAnalyzer.js';
 import { removeImageBackground } from '../services/backgroundRemoval.js';
 import { config, getMaxFileSize, buildAffiliateUrl } from '../services/config.js';
 import { uploadRateLimiter } from '../middleware/security.js';
+import { trackEvent } from '../services/analytics.js';
 
 const router = Router();
 
@@ -81,6 +82,7 @@ router.post('/upload', uploadRateLimiter(), upload.single('image'), async (req, 
       pattern: null,
     });
 
+    trackEvent('upload', { imageType: suggestions?.imageType, complexity: suggestions?.complexity });
     res.json({ id, message: 'Image uploaded successfully', suggestions });
   } catch (err) {
     next(err);
@@ -183,6 +185,12 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
 
     session.pattern = pattern;
 
+    trackEvent('generate', {
+      widthStitches: width, numColors: colors, stitchGauge: sg, rowGauge: rg,
+      cleanup: cleanup !== false, removeBackground: !!removeBackground,
+      enhanceDetail: !!enhanceDetail, projectType: validatedProjectType,
+    });
+
     res.json({
       id,
       pattern: {
@@ -227,6 +235,7 @@ router.get('/download/:id', async (req, res, next) => {
 
     const pdfBuffer = await generatePdf(session.pattern);
 
+    trackEvent('download', { projectType: session.pattern.projectType });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="KnitIt-Pattern-${id.slice(0, 8)}.pdf"`);
     res.setHeader('Content-Length', pdfBuffer.length);

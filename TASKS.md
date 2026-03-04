@@ -8,10 +8,10 @@
 - [x] 5. Simplify tips system (single static tip, X to dismiss, no carousel)
 
 ## Phase 2: New Features
-- [ ] 6. Project type & placement templates (blanket, scarf, pillow, wall hanging, sweater, tote)
-- [ ] 7. Yarn affiliate links (Amazon Associates, FTC disclosure)
-- [ ] 8. Freemium prep (feature flags, "Premium — free during beta" badges)
-- [ ] 9. Anonymized usage analytics (SQLite, admin dashboard)
+- [x] 6. Project type & placement templates (blanket, scarf, pillow, wall hanging, sweater, tote)
+- [x] 7. Yarn affiliate links (Amazon Associates, FTC disclosure)
+- [x] 8. Freemium prep (feature flags, "Premium — free during beta" badges)
+- [x] 9. Anonymized usage analytics (SQLite, admin dashboard)
 
 ## Phase 3: SEO & Discoverability
 - [ ] 10. JSON-LD structured data

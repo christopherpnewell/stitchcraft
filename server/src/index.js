@@ -11,6 +11,7 @@ import { config } from './services/config.js';
 import { helmetMiddleware, csrfProtection, permissionsPolicy } from './middleware/security.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import patternRoutes from './routes/pattern.js';
+import adminRoutes from './routes/admin.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -39,6 +40,9 @@ if (config.enableAds && config.adsensePublisherId) {
 
 // API routes
 app.use('/api', patternRoutes);
+
+// Admin dashboard (Basic Auth protected)
+app.use('/admin', adminRoutes);
 
 // Serve static frontend in production
 const clientDist = path.resolve(__dirname, '..', '..', 'client', 'dist');

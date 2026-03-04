@@ -240,8 +240,9 @@ export default function App() {
         )}
       </main>
 
-      <footer className="border-t border-gray-100 mt-16 py-6 text-center text-xs text-gray-400">
-        Knit It — Image to Knitting Pattern Generator
+      <footer className="border-t border-gray-100 mt-16 py-6 text-center text-xs text-gray-400 space-y-1">
+        <p>Knit It — Image to Knitting Pattern Generator</p>
+        <p>We collect anonymous usage statistics to improve Knit It. No images or personal information are stored.</p>
       </footer>
     </div>
   );
