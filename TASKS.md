@@ -1,35 +1,26 @@
-# Knit It — v2 Task List
+# Knit It — v3 Task List
 
-## Rename
-- [x] Rename all references from "StitchCraft" to "Knit It" across codebase
+## Phase 1: Bug Fixes
+- [ ] 1. Auto-generate on upload (apply suggestions + generate immediately)
+- [ ] 2. Remove auto-regeneration on setting changes (button-only)
+- [ ] 3. Fix status badge transitions (no stale "Ready to configure")
+- [ ] 4. Fix background removal (debug/replace non-functional implementation)
+- [ ] 5. Simplify tips system (single static tip, X to dismiss, no carousel)
 
-## Bug Fixes
-- [x] 1. Fix inverted image orientation in grid pipeline
-- [x] 2. Identify and fix all non-functional buttons/UI elements (all buttons functional: width selectors, color slider, gauge dropdown, toggles, generate, download, zoom, fit, start over, next tip, dismiss tip)
-- [x] 3. Fix duplicate yarn suggestions — improve color-distance matching
+## Phase 2: New Features
+- [ ] 6. Project type & placement templates (blanket, scarf, pillow, wall hanging, sweater, tote)
+- [ ] 7. Yarn affiliate links (Amazon Associates, FTC disclosure)
+- [ ] 8. Freemium prep (feature flags, "Premium — free during beta" badges)
+- [ ] 9. Anonymized usage analytics (SQLite, admin dashboard)
 
-## Enhancements
-- [x] 4. Background removal toggle (server-side via @imgly/background-removal-node, cached per session)
-- [x] 5. Smart settings suggestions on upload (image complexity/color analysis)
-- [x] 6. Live preview updates (debounced 400ms re-generation on config changes with AbortController cancellation)
-- [x] 7. Contrast & edge enhancement toggle ("Enhance detail" — unsharp mask + saturation boost)
-- [x] 8. Tips & hints system (14 tips, auto-rotating, dismissable, non-intrusive)
-- [ ] 9. Color priority zones (stretch goal — deferred)
+## Phase 3: SEO & Discoverability
+- [ ] 10. JSON-LD structured data
+- [ ] 11. Meta tags & Open Graph
+- [ ] 12. Content pages (landing, how-it-works, FAQ, about) with SSR
+- [ ] 13. Technical SEO (sitemap.xml, robots.txt, clean URLs, CWV)
 
-## Security Hardening
-- [x] 10. Full OWASP file upload compliance (magic bytes, UUID filenames, re-encoding, isolated storage, TTL cleanup)
-- [x] 11. Rate limiting & abuse prevention (10 req/min per IP, 30s processing timeout, 3-job concurrency semaphore)
-- [x] 12. HTTP security headers (CSP, X-Content-Type-Options, X-Frame-Options, HSTS, Referrer-Policy, Permissions-Policy)
-- [x] 13. Input validation hardening (min 20 / max 300 width, min 2 / max 16 colors, bounded gauge, generic error messages)
-- [x] 14. Dependency audit — moderate vuln in zod (transitive via @imgly/background-removal-node) and esbuild (transitive via vite). Both are dev/build-time only or DoS in input parsing — no critical/high vulns. Documented.
-- [x] 15. Environment & secrets (.env.example complete with all vars, .env in .gitignore, no hardcoded secrets)
+## Phase 4: Comprehensive Testing
+- [ ] 14. Full application testing (code review, API, UI, ADA, security, performance)
 
-## Google AdSense Integration
-- [x] 16. Ad placement (top banner + sidebar, responsive, placeholder when disabled, no layout disruption)
-- [x] 17. CSP configuration for ads (specific Google domains allowlisted, documented relaxations)
-- [x] 18. Ad configuration (ENABLE_ADS, ADSENSE_PUBLISHER_ID, AD_SLOT_TOP, AD_SLOT_SIDEBAR env vars, ads.txt served dynamically)
-
-## Final
-- [x] Update README for all new features and configuration
-- [x] UAT_RESULTS.md — all tests passing
-- [x] All changes committed and pushed
+## Phase 5: Expert Panel Review
+- [ ] 15. Five specialist sub-agents review and report
