@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const GAUGE_PRESETS = [
   { label: 'Bulky (3 st/in)', stitchGauge: 12, rowGauge: 16 },
@@ -11,13 +11,19 @@ const GAUGE_PRESETS = [
 
 const WIDTH_OPTIONS = [30, 40, 60, 80, 100, 120, 150, 200];
 
-export default function PatternConfig({ onGenerate, status }) {
+export default function PatternConfig({ onGenerate, onConfigChange, status, suggestions }) {
   const [widthStitches, setWidthStitches] = useState(60);
   const [numColors, setNumColors] = useState(6);
-  const [gaugePreset, setGaugePreset] = useState(1); // Worsted default
+  const [gaugePreset, setGaugePreset] = useState(1);
   const [stitchGauge, setStitchGauge] = useState(18);
   const [rowGauge, setRowGauge] = useState(24);
   const [cleanup, setCleanup] = useState(true);
+  const [removeBackground, setRemoveBackground] = useState(false);
+  const [enhanceDetail, setEnhanceDetail] = useState(false);
+  const [suggestionsApplied, setSuggestionsApplied] = useState(false);
+
+  // Track whether we've generated at least once (to enable live preview)
+  const hasGenerated = useRef(false);
 
   useEffect(() => {
     const preset = GAUGE_PRESETS[gaugePreset];
@@ -27,20 +33,34 @@ export default function PatternConfig({ onGenerate, status }) {
     }
   }, [gaugePreset]);
 
+  // Live preview: re-generate on config changes after first generate
+  useEffect(() => {
+    if (!hasGenerated.current || !onConfigChange) return;
+    onConfigChange({
+      widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail,
+    });
+  }, [widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail]);
+
   const isCustomGauge = GAUGE_PRESETS[gaugePreset].stitchGauge === null;
   const isGenerating = status === 'generating';
 
   const handleGenerate = () => {
+    hasGenerated.current = true;
     onGenerate({
-      widthStitches,
-      numColors,
-      stitchGauge,
-      rowGauge,
-      cleanup,
+      widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail,
     });
   };
 
-  // Calculate stitch aspect ratio info
+  const applySuggestions = () => {
+    if (!suggestions) return;
+    setWidthStitches(suggestions.suggestedWidth);
+    setNumColors(suggestions.suggestedColors);
+    if (suggestions.suggestedBackgroundRemoval) {
+      setRemoveBackground(true);
+    }
+    setSuggestionsApplied(true);
+  };
+
   const stitchAR = rowGauge / stitchGauge;
   const stitchWidthIn = 4 / stitchGauge;
   const stitchHeightIn = 4 / rowGauge;
@@ -48,6 +68,25 @@ export default function PatternConfig({ onGenerate, status }) {
   return (
     <div className="space-y-5">
       <h3 className="text-lg font-semibold text-gray-800">Pattern Settings</h3>
+
+      {/* Smart Suggestions Banner */}
+      {suggestions && !suggestionsApplied && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
+          <p className="text-sm text-blue-800 mb-1.5">
+            <span className="font-medium">Suggested settings</span> for this {suggestions.imageType}:
+          </p>
+          <p className="text-xs text-blue-700 mb-2">
+            {suggestions.suggestedWidth} stitches wide, {suggestions.suggestedColors} colors
+            {suggestions.suggestedBackgroundRemoval ? ', background removal on' : ''}
+          </p>
+          <button
+            onClick={applySuggestions}
+            className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Apply suggestions
+          </button>
+        </div>
+      )}
 
       {/* Grid Width */}
       <div>
@@ -111,31 +150,19 @@ export default function PatternConfig({ onGenerate, status }) {
         </select>
       </div>
 
-      {/* Custom Gauge Inputs */}
+      {/* Custom Gauge */}
       {isCustomGauge && (
         <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50 rounded-lg">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Stitches per 4"
-            </label>
-            <input
-              type="number"
-              min={5}
-              max={60}
-              value={stitchGauge}
+            <label className="block text-xs font-medium text-gray-600 mb-1">Stitches per 4"</label>
+            <input type="number" min={5} max={60} value={stitchGauge}
               onChange={e => setStitchGauge(parseInt(e.target.value, 10) || 18)}
               className="w-full px-2 py-1.5 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Rows per 4"
-            </label>
-            <input
-              type="number"
-              min={5}
-              max={60}
-              value={rowGauge}
+            <label className="block text-xs font-medium text-gray-600 mb-1">Rows per 4"</label>
+            <input type="number" min={5} max={60} value={rowGauge}
               onChange={e => setRowGauge(parseInt(e.target.value, 10) || 24)}
               className="w-full px-2 py-1.5 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
@@ -143,27 +170,29 @@ export default function PatternConfig({ onGenerate, status }) {
         </div>
       )}
 
-      {/* Stitch aspect ratio display */}
+      {/* Stitch aspect ratio */}
       <div className="text-xs text-gray-500 bg-gray-50 p-2.5 rounded-lg">
         <span className="font-medium">Stitch ratio:</span>{' '}
-        {stitchWidthIn.toFixed(3)}" wide × {stitchHeightIn.toFixed(3)}" tall
+        {stitchWidthIn.toFixed(3)}" wide x {stitchHeightIn.toFixed(3)}" tall
         (ratio {stitchAR.toFixed(2)}:1)
         {stitchAR > 1 && ' — stitches are wider than tall'}
       </div>
 
-      {/* Cleanup toggle */}
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={cleanup}
-          onChange={e => setCleanup(e.target.checked)}
-          className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500"
+      {/* Processing toggles */}
+      <div className="space-y-2.5">
+        <Toggle checked={cleanup} onChange={setCleanup}
+          label="Smooth isolated stitches"
+          hint="Removes hard-to-knit single-stitch color islands"
         />
-        <span className="text-sm text-gray-700">
-          Smooth isolated stitches
-        </span>
-        <span className="text-xs text-gray-400">(removes hard-to-knit single-stitch color islands)</span>
-      </label>
+        <Toggle checked={removeBackground} onChange={setRemoveBackground}
+          label="Remove background"
+          hint="Works best with photos that have a clear subject against a distinct background"
+        />
+        <Toggle checked={enhanceDetail} onChange={setEnhanceDetail}
+          label="Enhance detail"
+          hint="Boosts contrast and sharpness to retain shapes at low resolution"
+        />
+      </div>
 
       {/* Generate Button */}
       <button
@@ -187,9 +216,26 @@ export default function PatternConfig({ onGenerate, status }) {
             Generating Pattern...
           </span>
         ) : (
-          'Generate Pattern'
+          hasGenerated.current ? 'Regenerate Pattern' : 'Generate Pattern'
         )}
       </button>
     </div>
+  );
+}
+
+function Toggle({ checked, onChange, label, hint }) {
+  return (
+    <label className="flex items-start gap-2.5 cursor-pointer">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={e => onChange(e.target.checked)}
+        className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 mt-0.5"
+      />
+      <div>
+        <span className="text-sm text-gray-700">{label}</span>
+        {hint && <p className="text-xs text-gray-400 leading-tight">{hint}</p>}
+      </div>
+    </label>
   );
 }

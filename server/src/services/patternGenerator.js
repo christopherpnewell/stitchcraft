@@ -40,6 +40,7 @@ export async function generatePattern(imagePath, config) {
     stitchGauge = 20,
     rowGauge = 28,
     cleanup = true,
+    enhanceDetail = false,
   } = config;
 
   // Calculate stitch aspect ratio: width:height of one stitch
@@ -57,9 +58,19 @@ export async function generatePattern(imagePath, config) {
   // heightRows = widthStitches / (imgAspect * stitchAspectRatio)
   const heightRows = Math.round(widthStitches / (imgAspect * stitchAspectRatio));
 
+  // Build the Sharp pipeline
+  let pipeline = sharp(imagePath);
+
+  // Optional contrast/edge enhancement before resizing
+  if (enhanceDetail) {
+    pipeline = pipeline
+      .modulate({ brightness: 1.05, saturation: 1.2 })
+      .sharpen({ sigma: 2, m1: 1.5, m2: 0.7 });
+  }
+
   // Resize image to grid dimensions
   // We resize to widthStitches x heightRows — each pixel becomes one stitch
-  const { data, info } = await sharp(imagePath)
+  const { data, info } = await pipeline
     .resize(widthStitches, heightRows, {
       fit: 'fill',
       kernel: sharp.kernel.lanczos3,

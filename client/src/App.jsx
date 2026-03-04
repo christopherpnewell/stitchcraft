@@ -3,6 +3,8 @@ import ImageUpload from './components/ImageUpload.jsx';
 import PatternConfig from './components/PatternConfig.jsx';
 import PatternPreview from './components/PatternPreview.jsx';
 import ColorLegend from './components/ColorLegend.jsx';
+import Tips from './components/Tips.jsx';
+import AdBanner from './components/AdBanner.jsx';
 
 export default function App() {
   const {
@@ -10,14 +12,16 @@ export default function App() {
     error,
     pattern,
     uploadedFileName,
+    suggestions,
     upload,
     generate,
+    debouncedGenerate,
     getDownloadUrl,
     reset,
   } = usePattern();
 
   const showConfig = ['uploaded', 'generating', 'ready', 'error'].includes(status) && status !== 'idle';
-  const showPreview = status === 'ready' && pattern;
+  const showPreview = (status === 'ready' || status === 'generating') && pattern;
   const downloadUrl = getDownloadUrl();
 
   return (
@@ -46,8 +50,13 @@ export default function App() {
         </div>
       </header>
 
+      {/* Top ad banner */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4">
+        <AdBanner slot={window.__AD_SLOT_TOP__} />
+      </div>
+
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        {/* Hero section — visible when idle */}
+        {/* Hero section */}
         {status === 'idle' && (
           <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-display font-bold text-gray-900 mb-3">
@@ -63,8 +72,11 @@ export default function App() {
 
         {/* Error display */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
-            <span className="font-medium">Error:</span> {error}
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-start gap-2">
+            <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            <span><span className="font-medium">Error:</span> {error}</span>
           </div>
         )}
 
@@ -78,8 +90,8 @@ export default function App() {
         {/* Config + Preview layout */}
         {showConfig && (
           <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8">
-            {/* Left sidebar — config */}
-            <div className="space-y-6">
+            {/* Left sidebar */}
+            <div className="space-y-5">
               {/* Upload summary */}
               <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-xl">
                 <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
@@ -93,10 +105,15 @@ export default function App() {
                 </div>
               </div>
 
-              <PatternConfig onGenerate={generate} status={status} />
+              <PatternConfig
+                onGenerate={generate}
+                onConfigChange={debouncedGenerate}
+                status={status}
+                suggestions={suggestions}
+              />
 
               {/* Download button */}
-              {showPreview && downloadUrl && (
+              {pattern && downloadUrl && (
                 <a
                   href={downloadUrl}
                   className="
@@ -108,11 +125,17 @@ export default function App() {
                   Download PDF Pattern
                 </a>
               )}
+
+              {/* Sidebar ad */}
+              <AdBanner slot={window.__AD_SLOT_SIDEBAR__} className="hidden lg:flex" />
+
+              {/* Tips */}
+              <Tips />
             </div>
 
             {/* Right area — preview */}
             <div className="space-y-6">
-              {status === 'generating' && (
+              {status === 'generating' && !pattern && (
                 <div className="flex items-center justify-center py-20">
                   <div className="text-center">
                     <svg className="animate-spin h-10 w-10 text-brand-500 mx-auto mb-4" viewBox="0 0 24 24">
@@ -121,6 +144,17 @@ export default function App() {
                     </svg>
                     <p className="text-gray-500">Analyzing image and generating pattern...</p>
                   </div>
+                </div>
+              )}
+
+              {/* Loading overlay for re-generation */}
+              {status === 'generating' && pattern && (
+                <div className="flex items-center gap-2 text-sm text-brand-600 mb-2">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span>Updating preview...</span>
                 </div>
               )}
 
@@ -146,7 +180,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Feature highlights — visible on idle */}
+        {/* Feature highlights */}
         {status === 'idle' && (
           <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
             <Feature
@@ -165,7 +199,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-gray-100 mt-16 py-6 text-center text-xs text-gray-400">
         Knit It — Image to Knitting Pattern Generator
       </footer>

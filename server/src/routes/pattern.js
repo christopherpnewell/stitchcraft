@@ -1,11 +1,13 @@
 /**
- * Pattern API routes: upload, generate preview, download PDF
+ * Pattern API routes: upload, analyze, generate preview, download PDF
  */
 import { Router } from 'express';
 import multer from 'multer';
 import { validateUpload, sanitizeAndSave, deleteImage } from '../services/imageValidator.js';
 import { generatePattern } from '../services/patternGenerator.js';
 import { generatePdf } from '../services/pdfGenerator.js';
+import { analyzeImage } from '../services/imageAnalyzer.js';
+import { removeImageBackground } from '../services/backgroundRemoval.js';
 import { config, getMaxFileSize } from '../services/config.js';
 import { uploadRateLimiter } from '../middleware/security.js';
 
@@ -18,16 +20,30 @@ const upload = multer({
 });
 
 // In-memory session store for patterns (keyed by pattern ID)
-// In production, this would use Redis or similar
 const patternStore = new Map();
+
+// Concurrency semaphore for CPU-intensive processing
+const MAX_CONCURRENT = parseInt(process.env.MAX_CONCURRENT_JOBS || '3', 10);
+let activeJobs = 0;
+const PROCESSING_TIMEOUT_MS = parseInt(process.env.PROCESSING_TIMEOUT_MS || '30000', 10);
+
+function acquireSlot() {
+  if (activeJobs >= MAX_CONCURRENT) return false;
+  activeJobs++;
+  return true;
+}
+function releaseSlot() {
+  activeJobs = Math.max(0, activeJobs - 1);
+}
 
 // Clean up old patterns every 5 minutes
 setInterval(() => {
   const now = Date.now();
-  const TTL = 30 * 60 * 1000; // 30 minutes
+  const TTL = 30 * 60 * 1000;
   for (const [id, entry] of patternStore) {
     if (now - entry.createdAt > TTL) {
       if (entry.imagePath) deleteImage(entry.imagePath);
+      if (entry.bgRemovedPath) deleteImage(entry.bgRemovedPath);
       patternStore.delete(id);
     }
   }
@@ -35,7 +51,7 @@ setInterval(() => {
 
 /**
  * POST /api/upload
- * Upload an image, validate it, and return a session ID for further operations.
+ * Upload an image, validate it, return session ID + analysis suggestions.
  */
 router.post('/upload', uploadRateLimiter(), upload.single('image'), async (req, res, next) => {
   try {
@@ -43,23 +59,29 @@ router.post('/upload', uploadRateLimiter(), upload.single('image'), async (req, 
       return res.status(400).json({ error: 'No image file provided' });
     }
 
-    // Validate by extension + magic bytes
     const validation = validateUpload(req.file);
     if (!validation.valid) {
       return res.status(400).json({ error: validation.error });
     }
 
-    // Re-encode through Sharp (strips EXIF, neutralizes payloads)
     const { id, path: imagePath } = await sanitizeAndSave(req.file.buffer, config.uploadDir);
 
-    // Store in session
+    // Analyze image for smart suggestions
+    let suggestions = null;
+    try {
+      suggestions = await analyzeImage(imagePath);
+    } catch {
+      // Analysis is best-effort — don't fail the upload
+    }
+
     patternStore.set(id, {
       imagePath,
+      bgRemovedPath: null,
       createdAt: Date.now(),
       pattern: null,
     });
 
-    res.json({ id, message: 'Image uploaded successfully' });
+    res.json({ id, message: 'Image uploaded successfully', suggestions });
   } catch (err) {
     next(err);
   }
@@ -70,15 +92,27 @@ router.post('/upload', uploadRateLimiter(), upload.single('image'), async (req, 
  * Generate a knitting pattern from a previously uploaded image.
  */
 router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
-  try {
-    const { id, widthStitches, numColors, stitchGauge, rowGauge, cleanup } = req.body;
+  if (!acquireSlot()) {
+    return res.status(503).json({ error: 'Server is busy processing other patterns. Please try again shortly.' });
+  }
 
-    // Validate session
+  // Set up a processing timeout
+  const timeout = setTimeout(() => {
+    releaseSlot();
+    if (!res.headersSent) {
+      res.status(504).json({ error: 'Processing took too long. Try a smaller grid size or fewer colors.' });
+    }
+  }, PROCESSING_TIMEOUT_MS);
+
+  try {
+    // Only allow known fields
+    const { id, widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail } = req.body;
+
     if (!id || !patternStore.has(id)) {
       return res.status(404).json({ error: 'Upload session not found. Please upload an image first.' });
     }
 
-    // Validate and bound inputs server-side
+    // Validate and bound inputs
     const width = parseInt(widthStitches, 10);
     if (isNaN(width) || width < config.minGridWidth || width > config.maxGridWidth) {
       return res.status(400).json({
@@ -109,18 +143,34 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
 
     const session = patternStore.get(id);
 
-    const pattern = await generatePattern(session.imagePath, {
+    // Determine which image to use
+    let processingPath = session.imagePath;
+
+    // Background removal if requested
+    if (removeBackground) {
+      try {
+        // Cache the bg-removed version so re-generations don't redo it
+        if (!session.bgRemovedPath) {
+          session.bgRemovedPath = await removeImageBackground(session.imagePath, config.uploadDir);
+        }
+        processingPath = session.bgRemovedPath;
+      } catch (err) {
+        console.error('Background removal failed, using original:', err.message);
+        // Fall through to original image
+      }
+    }
+
+    const pattern = await generatePattern(processingPath, {
       widthStitches: width,
       numColors: colors,
       stitchGauge: sg,
       rowGauge: rg,
       cleanup: cleanup !== false,
+      enhanceDetail: enhanceDetail === true,
     });
 
-    // Store pattern in session
     session.pattern = pattern;
 
-    // Return pattern data (without the full grid for preview — client renders it)
     res.json({
       id,
       pattern: {
@@ -139,6 +189,9 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  } finally {
+    clearTimeout(timeout);
+    releaseSlot();
   }
 });
 
@@ -166,10 +219,14 @@ router.get('/download/:id', async (req, res, next) => {
     res.setHeader('Content-Length', pdfBuffer.length);
     res.send(pdfBuffer);
 
-    // Clean up: delete image after download
+    // Clean up images after download
     if (session.imagePath) {
       deleteImage(session.imagePath);
       session.imagePath = null;
+    }
+    if (session.bgRemovedPath) {
+      deleteImage(session.bgRemovedPath);
+      session.bgRemovedPath = null;
     }
   } catch (err) {
     next(err);

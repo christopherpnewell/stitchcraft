@@ -1,15 +1,23 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 /**
- * Hook for managing the pattern generation workflow:
- * upload → configure → generate → download
+ * Hook for managing the pattern generation workflow.
+ * Supports live preview updates with debounce and request cancellation.
  */
 export function usePattern() {
   const [sessionId, setSessionId] = useState(null);
   const [pattern, setPattern] = useState(null);
-  const [status, setStatus] = useState('idle'); // idle | uploading | uploaded | generating | ready | error
+  const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
   const [uploadedFileName, setUploadedFileName] = useState(null);
+  const [suggestions, setSuggestions] = useState(null);
+
+  // AbortController for cancelling stale generate requests
+  const abortRef = useRef(null);
+  // Debounce timer for live preview
+  const debounceRef = useRef(null);
+  // Latest config for re-generation
+  const latestConfigRef = useRef(null);
 
   function getCsrfToken() {
     const match = document.cookie.match(/(?:^|;\s*)csrfToken=([^;]*)/);
@@ -21,9 +29,9 @@ export function usePattern() {
     setError(null);
     setPattern(null);
     setSessionId(null);
+    setSuggestions(null);
 
     try {
-      // Client-side size check
       if (file.size > 10 * 1024 * 1024) {
         throw new Error('File exceeds 10MB size limit');
       }
@@ -31,16 +39,14 @@ export function usePattern() {
       const formData = new FormData();
       formData.append('image', file);
 
-      // First, do a GET to get the CSRF cookie
+      // Get CSRF cookie
       await fetch('/api/download/noop', { credentials: 'same-origin' }).catch(() => {});
 
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
         credentials: 'same-origin',
-        headers: {
-          'X-CSRF-Token': getCsrfToken(),
-        },
+        headers: { 'X-CSRF-Token': getCsrfToken() },
       });
 
       const data = await res.json();
@@ -48,6 +54,7 @@ export function usePattern() {
 
       setSessionId(data.id);
       setUploadedFileName(file.name);
+      setSuggestions(data.suggestions);
       setStatus('uploaded');
     } catch (err) {
       setError(err.message);
@@ -57,6 +64,14 @@ export function usePattern() {
 
   const generate = useCallback(async (config) => {
     if (!sessionId) return;
+
+    // Cancel any in-flight request
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     setStatus('generating');
     setError(null);
@@ -69,10 +84,8 @@ export function usePattern() {
           'X-CSRF-Token': getCsrfToken(),
         },
         credentials: 'same-origin',
-        body: JSON.stringify({
-          id: sessionId,
-          ...config,
-        }),
+        signal: controller.signal,
+        body: JSON.stringify({ id: sessionId, ...config }),
       });
 
       const data = await res.json();
@@ -81,10 +94,35 @@ export function usePattern() {
       setPattern(data.pattern);
       setStatus('ready');
     } catch (err) {
+      if (err.name === 'AbortError') return; // Cancelled — ignore
       setError(err.message);
       setStatus('error');
     }
   }, [sessionId]);
+
+  /**
+   * Debounced generate — for live preview updates when config changes.
+   * Waits 400ms after last call before firing.
+   */
+  const debouncedGenerate = useCallback((config) => {
+    latestConfigRef.current = config;
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      generate(config);
+    }, 400);
+  }, [generate]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (abortRef.current) abortRef.current.abort();
+    };
+  }, []);
 
   const getDownloadUrl = useCallback(() => {
     if (!sessionId) return null;
@@ -92,11 +130,14 @@ export function usePattern() {
   }, [sessionId]);
 
   const reset = useCallback(() => {
+    if (abortRef.current) abortRef.current.abort();
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     setSessionId(null);
     setPattern(null);
     setStatus('idle');
     setError(null);
     setUploadedFileName(null);
+    setSuggestions(null);
   }, []);
 
   return {
@@ -105,8 +146,10 @@ export function usePattern() {
     pattern,
     sessionId,
     uploadedFileName,
+    suggestions,
     upload,
     generate,
+    debouncedGenerate,
     getDownloadUrl,
     reset,
   };

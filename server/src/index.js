@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
 
 import { config } from './services/config.js';
-import { helmetMiddleware, csrfProtection } from './middleware/security.js';
+import { helmetMiddleware, csrfProtection, permissionsPolicy } from './middleware/security.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import patternRoutes from './routes/pattern.js';
 
@@ -21,13 +21,21 @@ await fs.mkdir(config.tmpDir, { recursive: true });
 
 // Security middleware
 app.use(helmetMiddleware());
+app.use(permissionsPolicy());
 app.use(cookieParser());
 
-// Body parsing
+// Body parsing with strict size limit
 app.use(express.json({ limit: '1mb' }));
 
 // CSRF protection
 app.use(csrfProtection());
+
+// ads.txt for AdSense verification
+if (config.enableAds && config.adsensePublisherId) {
+  app.get('/ads.txt', (req, res) => {
+    res.type('text/plain').send(`google.com, ${config.adsensePublisherId}, DIRECT, f08c47fec0942fa0\n`);
+  });
+}
 
 // API routes
 app.use('/api', patternRoutes);
@@ -37,14 +45,30 @@ const clientDist = path.resolve(__dirname, '..', '..', 'client', 'dist');
 try {
   await fs.access(clientDist);
   app.use(express.static(clientDist));
-  // SPA fallback — serve index.html for all non-API routes
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(clientDist, 'index.html'));
+
+  // SPA fallback — inject ad config into the HTML
+  app.get('*', async (req, res) => {
+    if (req.path.startsWith('/api')) return;
+
+    let html = await fs.readFile(path.join(clientDist, 'index.html'), 'utf8');
+
+    // Inject AdSense script and config if ads are enabled
+    if (config.enableAds && config.adsensePublisherId) {
+      const adScript = `
+    <meta name="adsense-publisher" content="${config.adsensePublisherId}">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${config.adsensePublisherId}" crossorigin="anonymous"></script>
+    <script>window.__AD_SLOT_TOP__="${config.adSlotTop}";window.__AD_SLOT_SIDEBAR__="${config.adSlotSidebar}";</script>`;
+      html = html.replace('</head>', `${adScript}\n  </head>`);
+    } else {
+      // No ads — define empty slots so the component renders nothing
+      const noAdScript = `<script>window.__AD_SLOT_TOP__="";window.__AD_SLOT_SIDEBAR__="";</script>`;
+      html = html.replace('</head>', `${noAdScript}\n  </head>`);
     }
+
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
   });
 } catch {
-  // Client not built yet — development mode
   if (config.isDev) {
     app.get('/', (req, res) => {
       res.json({ message: 'Knit It API running. Build the client with: cd client && npm run build' });

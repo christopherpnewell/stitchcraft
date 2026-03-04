@@ -1,5 +1,6 @@
 /**
  * Server configuration with defaults and validation.
+ * All config comes from environment variables — no hardcoded secrets.
  */
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -13,18 +14,26 @@ export const config = {
   uploadDir: path.resolve(serverRoot, process.env.UPLOAD_DIR || './uploads'),
   tmpDir: path.resolve(serverRoot, process.env.TMP_DIR || './tmp'),
   maxFileSizeMB: parseInt(process.env.MAX_FILE_SIZE_MB || '10', 10),
-  rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
-  rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '30', 10),
+  rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10), // 1 minute
+  rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '10', 10), // 10/min
   csrfSecret: process.env.CSRF_SECRET || 'dev-secret-change-in-production',
   isDev: (process.env.NODE_ENV || 'development') === 'development',
+  processingTimeoutMs: parseInt(process.env.PROCESSING_TIMEOUT_MS || '30000', 10),
+  maxConcurrentJobs: parseInt(process.env.MAX_CONCURRENT_JOBS || '3', 10),
 
   // Bounded input constraints
-  minGridWidth: 10,
-  maxGridWidth: 200,
+  minGridWidth: 20,
+  maxGridWidth: 300,
   minColors: 2,
-  maxColors: 12,
+  maxColors: 16,
   minGauge: 5,
   maxGauge: 60,
+
+  // AdSense (optional)
+  adsensePublisherId: process.env.ADSENSE_PUBLISHER_ID || '',
+  enableAds: process.env.ENABLE_ADS === 'true',
+  adSlotTop: process.env.AD_SLOT_TOP || '',
+  adSlotSidebar: process.env.AD_SLOT_SIDEBAR || '',
 };
 
 export function getMaxFileSize() {
