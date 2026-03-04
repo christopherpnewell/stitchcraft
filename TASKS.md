@@ -30,5 +30,6 @@
 - [x] 18. Ad configuration (ENABLE_ADS, ADSENSE_PUBLISHER_ID, AD_SLOT_TOP, AD_SLOT_SIDEBAR env vars, ads.txt served dynamically)
 
 ## Final
-- [ ] Update README for all new features and configuration
-- [ ] All changes committed and pushed
+- [x] Update README for all new features and configuration
+- [x] UAT_RESULTS.md — all tests passing
+- [x] All changes committed and pushed

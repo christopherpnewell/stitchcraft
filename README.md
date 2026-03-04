@@ -1,4 +1,4 @@
-# StitchCraft — Image to Knitting Pattern Generator
+# Knit It — Image to Knitting Pattern Generator
 
 Upload any image and get a professional, print-ready colorwork knitting pattern as a PDF. Handles stitch aspect ratio correctly, produces clean color-quantized charts, and includes yarn estimates.
 
@@ -29,24 +29,43 @@ npm run dev
 ### Production
 
 ```bash
-# Build the client
-npm run build
-
-# Start the server (serves the built client)
-npm start
+npm run build   # Build the client
+npm start       # Start the server (serves built client)
 ```
 
 ### Docker
 
 ```bash
-# Build and run
 docker compose up --build
 
-# Or with a custom CSRF secret
-CSRF_SECRET=$(openssl rand -hex 32) docker compose up --build
+# With custom secrets and ad config:
+CSRF_SECRET=$(openssl rand -hex 32) \
+ENABLE_ADS=true \
+ADSENSE_PUBLISHER_ID=ca-pub-XXXXXXXX \
+docker compose up --build
 ```
 
 App will be at http://localhost:3000.
+
+## Features
+
+### Core
+- **Image upload** with drag-and-drop, file type validation (magic bytes + extension), and EXIF stripping
+- **K-means++ color quantization** — produces faithful palettes from any image, no dithering
+- **Stitch aspect ratio correction** — accounts for non-square knit stitches so the finished piece looks correct
+- **Isolated stitch cleanup** — removes single-stitch color islands that are impractical to knit
+- **Professional PDF output** — paginated charts with numbered axes, color legend, symbols, yarn suggestions, gauge notes, finished dimensions, and yardage estimates
+
+### v2 Enhancements
+- **Background removal** — toggle to isolate foreground subjects from backgrounds (great for pet photos)
+- **Smart settings suggestions** — image analysis recommends optimal width, colors, and background removal
+- **Live preview** — config changes trigger debounced re-generation (400ms) with stale request cancellation
+- **Enhance detail** — contrast and sharpness boost for photographs that lose definition at low resolution
+- **Tips system** — rotating knitting and app tips, non-intrusive, dismissable
+
+### Monetization
+- **Google AdSense** — env-configurable ad placements (top banner + sidebar), with `ads.txt` served dynamically
+- Ads are completely disabled by default (`ENABLE_ADS=false`)
 
 ## Architecture
 
@@ -55,44 +74,40 @@ App will be at http://localhost:3000.
 │   └── src/
 │       ├── index.js                 # Express entry point
 │       ├── middleware/
-│       │   ├── security.js          # Helmet, rate limiting, CSRF
+│       │   ├── security.js          # Helmet, CSP, rate limiting, CSRF, Permissions-Policy
 │       │   └── errorHandler.js      # Global error handler
 │       ├── routes/
 │       │   └── pattern.js           # Upload, generate, download endpoints
 │       └── services/
-│           ├── config.js            # Server configuration
-│           ├── imageValidator.js     # Magic byte validation, EXIF stripping
-│           ├── colorQuantizer.js     # K-means++ color quantization
+│           ├── config.js            # Environment-driven configuration
+│           ├── imageValidator.js     # Magic byte validation, EXIF stripping, re-encoding
+│           ├── imageAnalyzer.js      # Image complexity/color analysis for smart suggestions
+│           ├── backgroundRemoval.js  # @imgly/background-removal-node integration
+│           ├── colorQuantizer.js     # K-means++ quantization, 60-entry yarn database
 │           ├── patternGenerator.js   # Image → knitting grid pipeline
 │           └── pdfGenerator.js       # Grid → professional PDF output
 ├── client/
 │   └── src/
 │       ├── App.jsx                  # Main application shell
 │       ├── hooks/
-│       │   └── usePattern.js        # Upload/generate/download state management
+│       │   └── usePattern.js        # Upload/generate/download with debounce + abort
 │       └── components/
 │           ├── ImageUpload.jsx      # Drag-and-drop image upload
-│           ├── PatternConfig.jsx    # Grid size, colors, gauge settings
-│           ├── PatternPreview.jsx   # Canvas-rendered chart preview
-│           └── ColorLegend.jsx      # Color table with yarn suggestions
+│           ├── PatternConfig.jsx    # Settings panel (width, colors, gauge, toggles)
+│           ├── PatternPreview.jsx   # Canvas-rendered chart preview with zoom
+│           ├── ColorLegend.jsx      # Color table with yarn suggestions
+│           ├── Tips.jsx             # Rotating tips system
+│           └── AdBanner.jsx         # Google AdSense wrapper
 ├── Dockerfile                       # Multi-stage production build
 └── docker-compose.yml
 ```
-
-## How It Works
-
-1. **Upload**: Image is validated by file extension AND magic bytes, re-encoded through Sharp to strip EXIF data and neutralize payloads, saved with a UUID filename to an isolated temp directory.
-
-2. **Generate**: The image is resized to the target grid dimensions, accounting for stitch aspect ratio (knit stitches are wider than tall — e.g., at a gauge of 18st × 24rows per 4", each stitch is 1.33× as wide as it is tall). Colors are reduced via k-means++ clustering. An optional cleanup pass removes isolated single-stitch color islands that would be impractical to knit.
-
-3. **Download**: A multi-page PDF is generated with PDFKit containing a title/info page, paginated chart pages (with overlap rows for continuity), and a color legend page with symbols, hex values, usage percentages, estimated yardage, and yarn brand suggestions.
 
 ## API Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/api/upload` | Upload an image. Returns `{ id }` |
-| `POST` | `/api/generate` | Generate pattern. Body: `{ id, widthStitches, numColors, stitchGauge, rowGauge, cleanup }` |
+| `POST` | `/api/upload` | Upload an image. Returns `{ id, suggestions }` |
+| `POST` | `/api/generate` | Generate pattern. Body: `{ id, widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail }` |
 | `GET` | `/api/download/:id` | Download PDF pattern |
 
 ## Environment Variables
@@ -104,20 +119,29 @@ App will be at http://localhost:3000.
 | `UPLOAD_DIR` | `./uploads` | Temp directory for uploaded images |
 | `TMP_DIR` | `./tmp` | Temp directory for processing |
 | `MAX_FILE_SIZE_MB` | `10` | Max upload size in MB |
-| `RATE_LIMIT_WINDOW_MS` | `900000` | Rate limit window (15 min) |
-| `RATE_LIMIT_MAX_REQUESTS` | `30` | Max requests per window |
-| `CSRF_SECRET` | `dev-secret...` | CSRF token secret (change in production) |
+| `RATE_LIMIT_WINDOW_MS` | `60000` | Rate limit window (1 min) |
+| `RATE_LIMIT_MAX_REQUESTS` | `10` | Max requests per window per IP |
+| `PROCESSING_TIMEOUT_MS` | `30000` | Max processing time before timeout |
+| `MAX_CONCURRENT_JOBS` | `3` | Max simultaneous image processing jobs |
+| `CSRF_SECRET` | `dev-secret...` | CSRF token secret (change in production!) |
+| `ENABLE_ADS` | `false` | Enable Google AdSense |
+| `ADSENSE_PUBLISHER_ID` | *(empty)* | AdSense publisher ID (ca-pub-XXXXX) |
+| `AD_SLOT_TOP` | *(empty)* | Ad slot ID for top banner |
+| `AD_SLOT_SIDEBAR` | *(empty)* | Ad slot ID for sidebar |
 
 ## Security
 
-- File type validation by magic bytes, not just Content-Type headers
-- All uploads re-encoded through Sharp (strips EXIF, GPS data, embedded payloads)
-- UUID filenames — original filenames never used server-side
-- Uploads stored outside webroot, deleted after PDF download
-- Helmet with strict CSP (no inline scripts)
-- Double-submit CSRF protection
-- Rate limiting on processing endpoints
-- Server-side input validation with bounded ranges
-- No stack traces or internal paths exposed to clients
-- HSTS headers configured
-- No analytics, tracking, or third-party scripts
+- **File upload**: Magic byte validation (not just Content-Type), UUID filenames, re-encoding through Sharp to strip EXIF/GPS/payloads, isolated storage outside webroot with TTL cleanup
+- **Rate limiting**: 10 requests/minute per IP on processing endpoints
+- **Processing limits**: 30s timeout, max 3 concurrent jobs (prevents CPU DoS)
+- **CSP**: Strict Content-Security-Policy; when ads are enabled, only specific Google domains are allowlisted (no blanket `unsafe-eval`)
+- **Headers**: HSTS, X-Content-Type-Options: nosniff, X-Frame-Options, Referrer-Policy, Permissions-Policy (camera/mic/geo disabled)
+- **CSRF**: Double-submit cookie + header verification
+- **Input validation**: All inputs bounded server-side (width 20-300, colors 2-16, gauge 5-60)
+- **Error handling**: Generic messages to client, full details logged server-side
+- **No tracking**: No analytics or third-party scripts (except AdSense when explicitly enabled)
+
+## Dependency Audit Notes
+
+- **Server**: `zod` moderate vulnerability (transitive via `@imgly/background-removal-node`) — DoS via crafted input to schema parsing. Low risk since zod is used internally by the bg removal lib, not for user input validation.
+- **Client**: `esbuild` moderate vulnerability (transitive via `vite`) — build-time only, not present in production output.
