@@ -136,10 +136,14 @@ export async function generatePattern(imagePath, config) {
   // Color percentages and estimated yardage
   const colorPercentages = finalCounts.map(c => Math.round((c / totalStitches) * 1000) / 10);
 
-  // Rough yardage estimate: ~1.5 yards per stitch for worsted weight
-  // This is very approximate — varies by yarn weight and stitch type
-  const yardsPerStitch = 0.015; // ~1.5 yards per 100 stitches
-  const colorYardages = finalCounts.map(c => Math.ceil(c * yardsPerStitch));
+  // Yardage estimate scaled by yarn weight (via stitch gauge)
+  // Base: ~0.022 yd/stitch for worsted (18-20 st/4in) + 15% safety buffer
+  const yardsPerStitch = getYardsPerStitch(stitchGauge);
+  const safetyMultiplier = 1.15;
+  const colorYardages = finalCounts.map(c => Math.ceil(c * yardsPerStitch * safetyMultiplier));
+
+  // Float length analysis — detect max consecutive stitches of one color per row
+  const floatAnalysis = analyzeFloatLengths(grid, widthStitches);
 
   return {
     grid,
@@ -153,6 +157,54 @@ export async function generatePattern(imagePath, config) {
     colorPercentages,
     colorYardages,
     totalStitches,
+    floatAnalysis,
+  };
+}
+
+/**
+ * Estimate yards per stitch based on stitch gauge (stitches per 4 inches).
+ * Heavier yarns use more yardage per stitch.
+ */
+function getYardsPerStitch(stitchGauge) {
+  if (stitchGauge <= 14) return 0.032;      // Bulky
+  if (stitchGauge <= 20) return 0.022;      // Worsted
+  if (stitchGauge <= 24) return 0.018;      // DK
+  if (stitchGauge <= 26) return 0.015;      // Sport
+  return 0.012;                              // Fingering
+}
+
+/**
+ * Analyze float lengths across the pattern grid.
+ * Returns max float length and whether any exceed the recommended 5-stitch limit.
+ */
+function analyzeFloatLengths(grid, widthStitches) {
+  let maxFloat = 0;
+  let rowsWithLongFloats = 0;
+
+  for (const row of grid) {
+    let currentColor = row[0];
+    let runLength = 1;
+    let rowMaxFloat = 0;
+
+    for (let c = 1; c < widthStitches; c++) {
+      if (row[c] === currentColor) {
+        runLength++;
+      } else {
+        if (runLength > rowMaxFloat) rowMaxFloat = runLength;
+        currentColor = row[c];
+        runLength = 1;
+      }
+    }
+    if (runLength > rowMaxFloat) rowMaxFloat = runLength;
+    if (rowMaxFloat > maxFloat) maxFloat = rowMaxFloat;
+    if (rowMaxFloat > 5) rowsWithLongFloats++;
+  }
+
+  return {
+    maxFloat,
+    hasLongFloats: maxFloat > 5,
+    rowsWithLongFloats,
+    totalRows: grid.length,
   };
 }
 

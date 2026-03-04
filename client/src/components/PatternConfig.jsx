@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import PremiumBadge from './PremiumBadge.jsx';
 
 const GAUGE_PRESETS = [
-  { label: 'Bulky (3 st/in)', stitchGauge: 12, rowGauge: 16 },
-  { label: 'Worsted (4.5 st/in)', stitchGauge: 18, rowGauge: 24 },
+  { label: 'Bulky (3 st/in)', stitchGauge: 12, rowGauge: 17 },
+  { label: 'Worsted (4.5 st/in)', stitchGauge: 18, rowGauge: 26 },
   { label: 'DK (5.5 st/in)', stitchGauge: 22, rowGauge: 30 },
-  { label: 'Sport (6 st/in)', stitchGauge: 24, rowGauge: 32 },
-  { label: 'Fingering (7 st/in)', stitchGauge: 28, rowGauge: 36 },
+  { label: 'Sport (6 st/in)', stitchGauge: 24, rowGauge: 34 },
+  { label: 'Fingering (7 st/in)', stitchGauge: 28, rowGauge: 40 },
   { label: 'Custom', stitchGauge: null, rowGauge: null },
 ];
 
