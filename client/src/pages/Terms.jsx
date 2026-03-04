@@ -91,12 +91,6 @@ export default function Terms() {
         </p>
       </Section>
 
-      <Section title="Contact">
-        <p>
-          For questions about these terms, contact us via the Knit It website.
-        </p>
-      </Section>
-
       <div className="mt-10 pt-6 border-t border-gray-100">
         <Link
           to="/"

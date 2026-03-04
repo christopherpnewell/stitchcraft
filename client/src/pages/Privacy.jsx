@@ -98,8 +98,7 @@ export default function Privacy() {
       <Section title="Your Rights">
         <p>
           You may decline advertising cookies at any time via the consent banner. Because we do not
-          collect personally identifiable information, there is no account to delete. If you have
-          questions about your data, contact us at the address below.
+          collect personally identifiable information, there is no account to delete.
         </p>
       </Section>
 
@@ -107,12 +106,6 @@ export default function Privacy() {
         <p>
           Anonymous analytics events are retained for up to 90&nbsp;days and then deleted. Uploaded
           images are deleted within 30&nbsp;minutes of upload. CSRF cookies expire after one hour.
-        </p>
-      </Section>
-
-      <Section title="Contact">
-        <p>
-          For privacy-related questions, contact us via the Knit It website.
         </p>
       </Section>
 
