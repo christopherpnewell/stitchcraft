@@ -92,25 +92,42 @@ export async function generatePdf(pattern) {
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
 
+    // Pre-calculate total pages for "Page X of Y" footers
+    const numChartPages = calculateChartPageCount(pattern);
+    const totalPages = 1 + numChartPages + 1 + 1; // title + charts + legend + construction
+
     // === PAGE 1: Title & Pattern Info ===
-    drawTitlePage(doc, pattern, projectInfo);
+    drawTitlePage(doc, pattern, projectInfo, totalPages);
 
     // === CHART PAGES ===
-    drawChartPages(doc, pattern);
+    drawChartPages(doc, pattern, totalPages);
 
     // === LEGEND PAGE ===
     doc.addPage();
-    drawLegendPage(doc, pattern);
+    drawLegendPage(doc, pattern, 1 + numChartPages + 1, totalPages);
 
     // === CONSTRUCTION INSTRUCTIONS PAGE ===
     doc.addPage();
-    drawConstructionPage(doc, pattern, projectType, projectInfo);
+    drawConstructionPage(doc, pattern, projectType, projectInfo, totalPages);
 
     doc.end();
   });
 }
 
-function drawTitlePage(doc, pattern, projectInfo) {
+// Needle size lookup by stitch gauge
+const NEEDLE_SIZES = {
+  12: 'US 10-11 / 6-8mm',
+  18: 'US 7-9 / 4.5-5.5mm',
+  22: 'US 5-7 / 3.75-4.5mm',
+  24: 'US 3-5 / 3.25-3.75mm',
+  28: 'US 1-3 / 2.25-3.25mm',
+};
+
+function getNeedleSize(stitchGauge) {
+  return NEEDLE_SIZES[stitchGauge] || 'Match to your yarn label';
+}
+
+function drawTitlePage(doc, pattern, projectInfo, totalPages) {
   // Title
   doc.fontSize(28).font('Helvetica-Bold')
     .text('Knit It', PAGE.marginLeft, PAGE.marginTop, {
@@ -127,11 +144,11 @@ function drawTitlePage(doc, pattern, projectInfo) {
     .text(projectInfo.description, { width: CONTENT_WIDTH, align: 'center' });
   doc.fillColor('#000');
 
-  doc.moveDown(2);
+  doc.moveDown(1.5);
 
   // Pattern summary box
   const boxY = doc.y;
-  const boxHeight = 220;
+  const boxHeight = 250;
   doc.roundedRect(PAGE.marginLeft, boxY, CONTENT_WIDTH, boxHeight, 8)
     .lineWidth(1).stroke('#ddd');
 
@@ -141,22 +158,24 @@ function drawTitlePage(doc, pattern, projectInfo) {
   doc.fontSize(11).font('Helvetica-Bold');
 
   drawInfoRow(doc, leftCol, y, 'Project:', projectInfo.label);
-  y += 24;
-  drawInfoRow(doc, leftCol, y, 'Dimensions:', `${pattern.widthStitches} stitches × ${pattern.heightRows} rows`);
-  y += 24;
+  y += 22;
+  drawInfoRow(doc, leftCol, y, 'Dimensions:', `${pattern.widthStitches} stitches x ${pattern.heightRows} rows`);
+  y += 22;
   drawInfoRow(doc, leftCol, y, 'Colors:', `${pattern.palette.length}`);
-  y += 24;
-  drawInfoRow(doc, leftCol, y, 'Gauge:', `${pattern.stitchGauge} sts × ${pattern.rowGauge} rows = 4" / 10cm`);
-  y += 24;
-  drawInfoRow(doc, leftCol, y, 'Finished Size:', `${pattern.finishedWidthInches}" × ${pattern.finishedHeightInches}" (${cmFromInches(pattern.finishedWidthInches)} × ${cmFromInches(pattern.finishedHeightInches)} cm)`);
-  y += 24;
+  y += 22;
+  drawInfoRow(doc, leftCol, y, 'Gauge:', `${pattern.stitchGauge} sts x ${pattern.rowGauge} rows = 4" / 10cm`);
+  y += 22;
+  drawInfoRow(doc, leftCol, y, 'Needle Size:', getNeedleSize(pattern.stitchGauge));
+  y += 22;
+  drawInfoRow(doc, leftCol, y, 'Finished Size:', `${pattern.finishedWidthInches}" x ${pattern.finishedHeightInches}" (${cmFromInches(pattern.finishedWidthInches)} x ${cmFromInches(pattern.finishedHeightInches)} cm)`);
+  y += 22;
   drawInfoRow(doc, leftCol, y, 'Total Stitches:', `${pattern.totalStitches.toLocaleString()}`);
 
   // Color mini-swatches in the summary
-  y += 36;
+  y += 30;
   doc.fontSize(10).font('Helvetica-Bold')
     .text('Color Palette:', leftCol, y);
-  y += 18;
+  y += 16;
 
   const swatchSize = 14;
   const swatchGap = 6;
@@ -176,12 +195,41 @@ function drawTitlePage(doc, pattern, projectInfo) {
 
   doc.fillColor('#000');
 
-  // Reading instructions
-  const instrY = boxY + boxHeight + 24;
+  // Table of Contents
+  const tocY = boxY + boxHeight + 16;
   doc.fontSize(11).font('Helvetica-Bold')
-    .text('How to Read This Chart', PAGE.marginLeft, instrY);
+    .text('Table of Contents', PAGE.marginLeft, tocY);
+  doc.moveDown(0.3);
+  doc.fontSize(9).font('Helvetica').fillColor('#444');
 
-  doc.moveDown(0.5);
+  const numChartPages = totalPages - 3; // total minus title, legend, construction
+  doc.text(`Page 1 .............. Pattern Info & Instructions`, PAGE.marginLeft + 10, doc.y, { width: CONTENT_WIDTH - 20 });
+  doc.moveDown(0.15);
+  doc.text(`Pages 2-${1 + numChartPages} .......... Chart`, PAGE.marginLeft + 10, doc.y, { width: CONTENT_WIDTH - 20 });
+  doc.moveDown(0.15);
+  doc.text(`Page ${2 + numChartPages} ............. Color Legend`, PAGE.marginLeft + 10, doc.y, { width: CONTENT_WIDTH - 20 });
+  doc.moveDown(0.15);
+  doc.text(`Page ${3 + numChartPages} ............. Construction Guide`, PAGE.marginLeft + 10, doc.y, { width: CONTENT_WIDTH - 20 });
+  doc.fillColor('#000');
+
+  // Gauge swatch section
+  doc.moveDown(1);
+  doc.fontSize(11).font('Helvetica-Bold')
+    .text('Before You Begin — Gauge Swatch', PAGE.marginLeft, doc.y);
+  doc.moveDown(0.4);
+  doc.fontSize(9).font('Helvetica').fillColor('#444');
+  doc.text(
+    `Make a gauge swatch before you begin. Cast on 24 stitches and work 24 rows in stockinette stitch (knit RS rows, purl WS rows). Measure the centre 4" x 4" of the swatch. You should get ${pattern.stitchGauge} stitches and ${pattern.rowGauge} rows per 4". If your swatch is larger than 4", go down one needle size. If smaller, go up one needle size. Your finished piece dimensions depend on matching this gauge exactly.`,
+    PAGE.marginLeft + 10, doc.y, { width: CONTENT_WIDTH - 20 }
+  );
+  doc.fillColor('#000');
+
+  // How to Read This Chart
+  doc.moveDown(1);
+  doc.fontSize(11).font('Helvetica-Bold')
+    .text('How to Read This Chart', PAGE.marginLeft, doc.y);
+
+  doc.moveDown(0.4);
   doc.fontSize(9).font('Helvetica').fillColor('#444');
   const instructions = [
     '• Each square on the chart represents one stitch. Columns = stitches, rows = rows.',
@@ -190,16 +238,48 @@ function drawTitlePage(doc, pattern, projectInfo) {
     '• For flat knitting: read RS (odd) rows right to left, WS (even) rows left to right.',
     '• Numbers along the right side mark every 5th row. Numbers along the bottom mark every 10th stitch.',
     '• Each color has both a color fill and a symbol, so the chart is usable in both color and B&W printing.',
-    '• MC = Main Color (most used). CC1, CC2, etc. = Contrast Colors.',
-    `• Chart cells are drawn at the correct stitch aspect ratio for the specified gauge (${pattern.stitchGauge}st × ${pattern.rowGauge}rows per 4").`,
+    `• Chart cells are drawn at the correct stitch aspect ratio for the specified gauge (${pattern.stitchGauge}st x ${pattern.rowGauge}rows per 4").`,
   ];
 
   for (const line of instructions) {
     doc.text(line, PAGE.marginLeft + 10, doc.y, { width: CONTENT_WIDTH - 20 });
-    doc.moveDown(0.2);
+    doc.moveDown(0.15);
   }
-
   doc.fillColor('#000');
+
+  // Abbreviations table
+  doc.moveDown(0.8);
+  doc.fontSize(11).font('Helvetica-Bold')
+    .text('Abbreviations', PAGE.marginLeft, doc.y);
+  doc.moveDown(0.3);
+
+  const abbrevs = [
+    ['MC', 'Main Color (most used color)'],
+    ['CC1, CC2...', 'Contrast Color 1, 2, etc.'],
+    ['RS', 'Right Side (public-facing side)'],
+    ['WS', 'Wrong Side (back of work)'],
+    ['st(s)', 'Stitch(es)'],
+    ['CO', 'Cast On'],
+    ['BO', 'Bind Off (cast off)'],
+    ['k', 'Knit'],
+    ['p', 'Purl'],
+    ['rep', 'Repeat'],
+  ];
+
+  doc.fontSize(8).font('Helvetica');
+  const abbrColLeft = PAGE.marginLeft + 10;
+  const abbrColRight = PAGE.marginLeft + 100;
+
+  for (const [term, meaning] of abbrevs) {
+    const abbrY = doc.y;
+    doc.font('Helvetica-Bold').fillColor('#333').text(term, abbrColLeft, abbrY, { width: 85, lineBreak: false });
+    doc.font('Helvetica').fillColor('#555').text(meaning, abbrColRight, abbrY, { width: CONTENT_WIDTH - 110 });
+    doc.moveDown(0.05);
+  }
+  doc.fillColor('#000');
+
+  // Page footer
+  drawPageFooter(doc, 1, totalPages);
 }
 
 function drawInfoRow(doc, x, y, label, value) {
@@ -207,34 +287,53 @@ function drawInfoRow(doc, x, y, label, value) {
   doc.font('Helvetica').text(' ' + value);
 }
 
-function drawChartPages(doc, pattern) {
-  const { grid, palette, widthStitches, heightRows, stitchGauge, rowGauge } = pattern;
+function drawPageFooter(doc, pageNum, totalPages) {
+  doc.fontSize(7).font('Helvetica').fillColor('#999')
+    .text(
+      `Page ${pageNum} of ${totalPages}`,
+      PAGE.marginLeft, PAGE.height - PAGE.marginBottom + 10,
+      { width: CONTENT_WIDTH, align: 'center' }
+    );
+  doc.fillColor('#000');
+}
 
+function getChartLayout(pattern) {
+  const { widthStitches, heightRows, stitchGauge, rowGauge } = pattern;
   const stitchAR = rowGauge / stitchGauge;
-
   const axisLabelWidth = 30;
   const axisLabelHeight = 20;
   const chartAreaWidth = CONTENT_WIDTH - axisLabelWidth;
-  const chartAreaHeight = CONTENT_HEIGHT - axisLabelHeight - 30;
+  const chartAreaHeight = CONTENT_HEIGHT - axisLabelHeight - 50; // extra space for mini key
 
   let cellWidth = Math.min(12, chartAreaWidth / widthStitches);
   let cellHeight = cellWidth / stitchAR;
-
   const minCellSize = 4;
   if (cellWidth < minCellSize) cellWidth = minCellSize;
   cellHeight = cellWidth / stitchAR;
 
   const colsPerPage = Math.floor(chartAreaWidth / cellWidth);
   const rowsPerPage = Math.floor(chartAreaHeight / cellHeight);
-
   const overlapRows = 2;
   const overlapCols = 2;
-
   const effectiveRowsPerPage = rowsPerPage - overlapRows;
   const effectiveColsPerPage = colsPerPage - overlapCols;
-
   const numPageCols = Math.ceil(widthStitches / effectiveColsPerPage);
   const numPageRows = Math.ceil(heightRows / effectiveRowsPerPage);
+
+  return { stitchAR, axisLabelWidth, axisLabelHeight, chartAreaWidth, chartAreaHeight,
+    cellWidth, cellHeight, colsPerPage, rowsPerPage, effectiveRowsPerPage, effectiveColsPerPage,
+    numPageCols, numPageRows };
+}
+
+function calculateChartPageCount(pattern) {
+  const { numPageCols, numPageRows } = getChartLayout(pattern);
+  return numPageCols * numPageRows;
+}
+
+function drawChartPages(doc, pattern, totalPages) {
+  const { grid, palette, widthStitches, heightRows } = pattern;
+  const { cellWidth, cellHeight, colsPerPage, rowsPerPage,
+    effectiveRowsPerPage, effectiveColsPerPage, numPageCols, numPageRows } = getChartLayout(pattern);
 
   for (let pageRow = 0; pageRow < numPageRows; pageRow++) {
     for (let pageCol = 0; pageCol < numPageCols; pageCol++) {
@@ -320,18 +419,40 @@ function drawChartPages(doc, pattern) {
 
       doc.fillColor('#000');
 
-      doc.fontSize(7).font('Helvetica').fillColor('#999')
-        .text(
-          `Page ${pageRow * numPageCols + pageCol + 2}`,
-          PAGE.marginLeft, PAGE.height - PAGE.marginBottom + 10,
-          { width: CONTENT_WIDTH, align: 'center' }
-        );
-      doc.fillColor('#000');
+      // Mini symbol/color key for colors used on this page
+      const usedOnPage = new Set();
+      for (let r = 0; r < pageRows; r++) {
+        const gridRow = startRow + (pageRows - 1 - r);
+        if (gridRow < 0 || gridRow >= heightRows) continue;
+        for (let c = 0; c < pageCols; c++) {
+          usedOnPage.add(grid[gridRow][startCol + c]);
+        }
+      }
+
+      const keyY = chartY + pageRows * cellHeight + 16;
+      let keyX = PAGE.marginLeft;
+      doc.fontSize(7).font('Helvetica');
+      for (const idx of [...usedOnPage].sort((a, b) => a - b)) {
+        const color = palette[idx];
+        if (keyX + 70 > PAGE.marginLeft + CONTENT_WIDTH) {
+          keyX = PAGE.marginLeft;
+          // If we'd overflow vertically, skip
+        }
+        doc.rect(keyX, keyY, 8, 8).fill(color.hex);
+        doc.rect(keyX, keyY, 8, 8).lineWidth(0.3).stroke('#999');
+        const sym = idx < SYMBOLS.length ? (SYMBOLS[idx] || '-') : '?';
+        doc.fillColor('#333').text(`${sym} ${color.label}`, keyX + 10, keyY, { width: 55, lineBreak: false });
+        keyX += 65;
+        doc.fillColor('#000');
+      }
+
+      const chartPageNum = pageRow * numPageCols + pageCol + 2;
+      drawPageFooter(doc, chartPageNum, totalPages);
     }
   }
 }
 
-function drawLegendPage(doc, pattern) {
+function drawLegendPage(doc, pattern, pageNum, totalPages) {
   doc.fontSize(16).font('Helvetica-Bold')
     .text('Color Legend & Yarn Guide', PAGE.marginLeft, PAGE.marginTop, {
       width: CONTENT_WIDTH,
@@ -430,9 +551,10 @@ function drawLegendPage(doc, pattern) {
   }
 
   doc.fillColor('#000');
+  drawPageFooter(doc, pageNum, totalPages);
 }
 
-function drawConstructionPage(doc, pattern, projectType, projectInfo) {
+function drawConstructionPage(doc, pattern, projectType, projectInfo, totalPages) {
   doc.fontSize(16).font('Helvetica-Bold')
     .text(`Construction Guide: ${projectInfo.label}`, PAGE.marginLeft, PAGE.marginTop, {
       width: CONTENT_WIDTH,
@@ -478,13 +600,7 @@ function drawConstructionPage(doc, pattern, projectType, projectInfo) {
 
   doc.fillColor('#000');
 
-  // Footer
-  doc.fontSize(7).font('Helvetica').fillColor('#999')
-    .text(
-      'Generated by Knit It',
-      PAGE.marginLeft, PAGE.height - PAGE.marginBottom + 10,
-      { width: CONTENT_WIDTH, align: 'center' }
-    );
+  drawPageFooter(doc, totalPages, totalPages);
 }
 
 function getConstructionInstructions(projectType, pattern, totalYards, w, h) {
