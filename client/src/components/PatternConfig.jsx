@@ -71,13 +71,15 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
 
       {/* Grid Width */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        <span id="width-label" className="block text-sm font-medium text-gray-700 mb-1.5">
           Width (stitches)
-        </label>
-        <div className="flex flex-wrap gap-2">
+        </span>
+        <div role="radiogroup" aria-labelledby="width-label" className="flex flex-wrap gap-2">
           {WIDTH_OPTIONS.map(w => (
             <button
               key={w}
+              role="radio"
+              aria-checked={widthStitches === w}
               onClick={() => setWidthStitches(w)}
               className={`
                 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors relative
@@ -101,10 +103,11 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
 
       {/* Number of Colors */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label htmlFor="numColors" className="block text-sm font-medium text-gray-700 mb-1.5">
           Colors: <span className="text-brand-600 font-semibold">{numColors}</span>
         </label>
         <input
+          id="numColors"
           type="range"
           min={2}
           max={12}
@@ -123,10 +126,11 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
 
       {/* Gauge Preset */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label htmlFor="gaugePreset" className="block text-sm font-medium text-gray-700 mb-1.5">
           Yarn Weight / Gauge
         </label>
         <select
+          id="gaugePreset"
           value={gaugePreset}
           onChange={e => setGaugePreset(parseInt(e.target.value, 10))}
           className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
@@ -159,10 +163,11 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
 
       {/* Project Type */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label htmlFor="projectType" className="block text-sm font-medium text-gray-700 mb-1.5">
           Project Type
         </label>
         <select
+          id="projectType"
           value={projectType}
           onChange={e => setProjectType(e.target.value)}
           className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
@@ -221,7 +226,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
       >
         {isGenerating ? (
           <span className="flex items-center justify-center gap-2">
-            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>

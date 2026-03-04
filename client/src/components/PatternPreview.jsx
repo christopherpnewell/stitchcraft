@@ -177,6 +177,7 @@ export default function PatternPreview({ pattern }) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setZoom(z => Math.max(0.25, z - 0.25))}
+            aria-label="Zoom out"
             className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold"
           >
             -
@@ -184,12 +185,14 @@ export default function PatternPreview({ pattern }) {
           <span className="text-sm text-gray-500 w-12 text-center">{Math.round(zoom * 100)}%</span>
           <button
             onClick={() => setZoom(z => Math.min(4, z + 0.25))}
+            aria-label="Zoom in"
             className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold"
           >
             +
           </button>
           <button
             onClick={() => setZoom(1)}
+            aria-label="Reset zoom to fit"
             className="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs text-gray-600"
           >
             Fit
