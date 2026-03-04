@@ -369,6 +369,9 @@ function drawChartPages(doc, pattern, totalPages) {
         doc.addPage();
       }
 
+      const savedMarginBottom = doc.page.margins.bottom;
+      doc.page.margins.bottom = 0;
+
       const startCol = pageCol * effectiveColsPerPage;
       const startRow = pageRow * effectiveRowsPerPage;
       const endCol = Math.min(startCol + colsPerPage, widthStitches);
@@ -459,23 +462,27 @@ function drawChartPages(doc, pattern, totalPages) {
         }
       }
 
-      const keyY = chartY + pageRows * cellHeight + 16;
+      const keySwatchSize = 10;
+      const keyEntryWidth = 70;
+      const keyY_start = chartY + pageRows * cellHeight + 16;
+      let keyY_current = keyY_start;
       let keyX = PAGE.marginLeft;
       doc.fontSize(7).font('Helvetica');
       for (const idx of [...usedOnPage].sort((a, b) => a - b)) {
         const color = palette[idx];
-        if (keyX + 70 > PAGE.marginLeft + contentWidth) {
+        if (keyX + keyEntryWidth > PAGE.marginLeft + contentWidth) {
           keyX = PAGE.marginLeft;
-          // If we'd overflow vertically, skip
+          keyY_current += keySwatchSize + 4;
         }
-        doc.rect(keyX, keyY, 8, 8).fill(color.hex);
-        doc.rect(keyX, keyY, 8, 8).lineWidth(0.3).stroke('#999');
+        doc.rect(keyX, keyY_current, keySwatchSize, keySwatchSize).fill(color.hex);
+        doc.rect(keyX, keyY_current, keySwatchSize, keySwatchSize).lineWidth(0.3).stroke('#999');
         const sym = idx < SYMBOLS.length ? (SYMBOLS[idx] || '-') : '?';
-        doc.fillColor('#333').text(`${sym} ${color.label}`, keyX + 10, keyY, { width: 55, lineBreak: false });
-        keyX += 65;
+        doc.fillColor('#333').text(`${sym} ${color.label}`, keyX + keySwatchSize + 2, keyY_current, { width: 55, lineBreak: false });
+        keyX += keyEntryWidth;
         doc.fillColor('#000');
       }
 
+      doc.page.margins.bottom = savedMarginBottom;
       const chartPageNum = pageRow * numPageCols + pageCol + 2;
       drawPageFooter(doc, chartPageNum, totalPages, pageHeight);
     }
