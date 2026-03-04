@@ -1,55 +1,101 @@
 /**
- * Background removal service using @imgly/background-removal-node.
- * Removes background from photographs, replacing it with a solid color.
+ * Background removal service using sharp.
+ * Detects the dominant background color from image edges and replaces
+ * similar-colored regions with a solid fill, preserving the foreground subject.
+ *
+ * This approach works well for images with relatively uniform backgrounds
+ * (single color, gradient, or outdoor/indoor scenes with consistent tone).
  */
-import { removeBackground } from '@imgly/background-removal-node';
 import sharp from 'sharp';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Remove the background from an image file.
- * The background is replaced with the most common edge color from the original
- * (approximating the background color) so it becomes a clean solid fill.
+ * Detects background color from edge pixels, creates an alpha mask
+ * by color distance, then composites the foreground over a solid fill.
  *
  * @param {string} inputPath - Path to the input image (PNG)
  * @param {string} outputDir - Directory for the output file
  * @returns {Promise<string>} Path to the processed image
  */
 export async function removeImageBackground(inputPath, outputDir) {
-  // Read the original image to sample edge colors for fill
-  const originalBuffer = await sharp(inputPath).raw().toBuffer({ resolveWithObject: true });
-  const fillColor = sampleEdgeColor(originalBuffer.data, originalBuffer.info);
+  // Read image as raw pixel data
+  const { data, info } = await sharp(inputPath)
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
 
-  // Run background removal — returns a Blob
-  const inputBuffer = await sharp(inputPath).png().toBuffer();
-  const blob = await removeBackground(inputBuffer, {
-    output: { format: 'image/png' },
-  });
+  const { width, height, channels } = info;
 
-  // Convert Blob to Buffer
-  const arrayBuffer = await blob.arrayBuffer();
-  const resultBuffer = Buffer.from(arrayBuffer);
+  // Sample edge pixels to determine background color
+  const bgColor = sampleEdgeColor(data, width, height, channels);
 
-  // Composite: place the foreground (with alpha) over the solid fill color
-  const outputId = uuidv4();
-  const outputPath = path.join(outputDir, `${outputId}.png`);
+  // Create alpha mask: pixels similar to background get transparent
+  const threshold = 55; // Color distance threshold
+  const alphaData = Buffer.alloc(width * height * 4);
 
-  const { width, height } = await sharp(resultBuffer).metadata();
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const srcIdx = (y * width + x) * channels;
+      const dstIdx = (y * width + x) * 4;
 
-  // Create solid color background
+      const r = data[srcIdx];
+      const g = data[srcIdx + 1];
+      const b = data[srcIdx + 2];
+
+      // Euclidean distance to background color
+      const dist = Math.sqrt(
+        (r - bgColor[0]) ** 2 +
+        (g - bgColor[1]) ** 2 +
+        (b - bgColor[2]) ** 2
+      );
+
+      // Soft edge: smooth transition near threshold
+      let alpha;
+      if (dist < threshold * 0.6) {
+        alpha = 0; // Definitely background
+      } else if (dist > threshold) {
+        alpha = 255; // Definitely foreground
+      } else {
+        // Smooth transition
+        alpha = Math.round(((dist - threshold * 0.6) / (threshold * 0.4)) * 255);
+      }
+
+      alphaData[dstIdx] = r;
+      alphaData[dstIdx + 1] = g;
+      alphaData[dstIdx + 2] = b;
+      alphaData[dstIdx + 3] = alpha;
+    }
+  }
+
+  // Morphological cleanup: erode then dilate to remove noise at edges
+  const cleanedAlpha = cleanupMask(alphaData, width, height);
+
+  // Fill color: use white for clean knitting pattern background
+  const fillColor = { r: 255, g: 255, b: 255 };
+
+  // Create solid background
   const background = await sharp({
     create: {
       width,
       height,
       channels: 3,
-      background: { r: fillColor[0], g: fillColor[1], b: fillColor[2] },
+      background: fillColor,
     },
   }).png().toBuffer();
 
+  // Create foreground with alpha
+  const foreground = await sharp(cleanedAlpha, {
+    raw: { width, height, channels: 4 },
+  }).png().toBuffer();
+
   // Composite foreground over background
+  const outputId = uuidv4();
+  const outputPath = path.join(outputDir, `${outputId}.png`);
+
   await sharp(background)
-    .composite([{ input: resultBuffer, blend: 'over' }])
+    .composite([{ input: foreground, blend: 'over' }])
     .png()
     .toFile(outputPath);
 
@@ -57,36 +103,87 @@ export async function removeImageBackground(inputPath, outputDir) {
 }
 
 /**
- * Sample the most common color along the image edges (top/bottom/left/right 2px).
- * This approximates the background color for fill replacement.
+ * Sample the dominant color along the image edges.
+ * Uses median of edge pixels (more robust than mean against outliers).
  */
-function sampleEdgeColor(data, info) {
-  const { width, height, channels } = info;
-  const edgePixels = [];
-  const border = 2;
+function sampleEdgeColor(data, width, height, channels) {
+  const border = Math.max(2, Math.min(5, Math.floor(Math.min(width, height) * 0.02)));
+  const rs = [], gs = [], bs = [];
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       if (y < border || y >= height - border || x < border || x >= width - border) {
         const i = (y * width + x) * channels;
-        edgePixels.push([data[i], data[i + 1], data[i + 2]]);
+        rs.push(data[i]);
+        gs.push(data[i + 1]);
+        bs.push(data[i + 2]);
       }
     }
   }
 
-  if (edgePixels.length === 0) return [255, 255, 255];
+  if (rs.length === 0) return [255, 255, 255];
 
-  // Simple average of edge pixels (good enough for background fill)
-  const sum = [0, 0, 0];
-  for (const p of edgePixels) {
-    sum[0] += p[0];
-    sum[1] += p[1];
-    sum[2] += p[2];
+  // Use median for robustness
+  rs.sort((a, b) => a - b);
+  gs.sort((a, b) => a - b);
+  bs.sort((a, b) => a - b);
+  const mid = Math.floor(rs.length / 2);
+
+  return [rs[mid], gs[mid], bs[mid]];
+}
+
+/**
+ * Simple morphological cleanup on the alpha channel.
+ * Erode then dilate to remove small noise regions.
+ */
+function cleanupMask(rgba, width, height) {
+  const result = Buffer.from(rgba);
+  const kernel = 2; // Pixel radius for erosion/dilation
+
+  // Extract alpha values
+  const alpha = new Uint8Array(width * height);
+  for (let i = 0; i < width * height; i++) {
+    alpha[i] = rgba[i * 4 + 3];
   }
 
-  return [
-    Math.round(sum[0] / edgePixels.length),
-    Math.round(sum[1] / edgePixels.length),
-    Math.round(sum[2] / edgePixels.length),
-  ];
+  // Erode: shrink foreground (remove noise at edges)
+  const eroded = new Uint8Array(width * height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let minAlpha = 255;
+      for (let ky = -kernel; ky <= kernel; ky++) {
+        for (let kx = -kernel; kx <= kernel; kx++) {
+          const ny = y + ky, nx = x + kx;
+          if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+            minAlpha = Math.min(minAlpha, alpha[ny * width + nx]);
+          }
+        }
+      }
+      eroded[y * width + x] = minAlpha;
+    }
+  }
+
+  // Dilate: grow foreground back (restore edges)
+  const dilated = new Uint8Array(width * height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let maxAlpha = 0;
+      for (let ky = -kernel; ky <= kernel; ky++) {
+        for (let kx = -kernel; kx <= kernel; kx++) {
+          const ny = y + ky, nx = x + kx;
+          if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+            maxAlpha = Math.max(maxAlpha, eroded[ny * width + nx]);
+          }
+        }
+      }
+      dilated[y * width + x] = maxAlpha;
+    }
+  }
+
+  // Write cleaned alpha back to RGBA buffer
+  for (let i = 0; i < width * height; i++) {
+    result[i * 4 + 3] = dilated[i];
+  }
+
+  return result;
 }

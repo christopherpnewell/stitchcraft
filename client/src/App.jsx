@@ -15,7 +15,6 @@ export default function App() {
     suggestions,
     upload,
     generate,
-    debouncedGenerate,
     getDownloadUrl,
     reset,
   } = usePattern();
@@ -23,6 +22,34 @@ export default function App() {
   const showConfig = ['uploaded', 'generating', 'ready', 'error'].includes(status) && status !== 'idle';
   const showPreview = (status === 'ready' || status === 'generating') && pattern;
   const downloadUrl = getDownloadUrl();
+
+  // Status badge text and style
+  const badgeInfo = (() => {
+    switch (status) {
+      case 'uploading':
+        return { text: 'Uploading...', color: 'blue' };
+      case 'generating':
+        return { text: 'Generating pattern...', color: 'blue' };
+      case 'ready':
+        return { text: 'Pattern ready', color: 'green' };
+      case 'error':
+        return { text: 'Something went wrong', color: 'red' };
+      default:
+        return null;
+    }
+  })();
+
+  const badgeColors = {
+    green: 'bg-green-50 border-green-200 text-green-800',
+    blue: 'bg-blue-50 border-blue-200 text-blue-800',
+    red: 'bg-red-50 border-red-200 text-red-800',
+  };
+
+  const badgeIconColors = {
+    green: 'bg-green-100 text-green-600',
+    blue: 'bg-blue-100 text-blue-600',
+    red: 'bg-red-100 text-red-600',
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -92,22 +119,36 @@ export default function App() {
           <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8">
             {/* Left sidebar */}
             <div className="space-y-5">
-              {/* Upload summary */}
-              <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-xl">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
+              {/* Status badge */}
+              {badgeInfo && (
+                <div className={`flex items-center gap-3 p-3 border rounded-xl ${badgeColors[badgeInfo.color]}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${badgeIconColors[badgeInfo.color]}`}>
+                    {badgeInfo.color === 'green' && (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                    {badgeInfo.color === 'blue' && (
+                      <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                    )}
+                    {badgeInfo.color === 'red' && (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{uploadedFileName}</p>
+                    <p className="text-xs opacity-80">{badgeInfo.text}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-green-800 truncate">{uploadedFileName}</p>
-                  <p className="text-xs text-green-600">Ready to configure</p>
-                </div>
-              </div>
+              )}
 
               <PatternConfig
                 onGenerate={generate}
-                onConfigChange={debouncedGenerate}
                 status={status}
                 suggestions={suggestions}
               />

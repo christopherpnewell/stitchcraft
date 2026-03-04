@@ -2,7 +2,8 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 
 /**
  * Hook for managing the pattern generation workflow.
- * Supports live preview updates with debounce and request cancellation.
+ * Upload triggers auto-generate with suggested settings.
+ * Subsequent regeneration is button-triggered only.
  */
 export function usePattern() {
   const [sessionId, setSessionId] = useState(null);
@@ -14,15 +15,49 @@ export function usePattern() {
 
   // AbortController for cancelling stale generate requests
   const abortRef = useRef(null);
-  // Debounce timer for live preview
-  const debounceRef = useRef(null);
-  // Latest config for re-generation
-  const latestConfigRef = useRef(null);
 
   function getCsrfToken() {
     const match = document.cookie.match(/(?:^|;\s*)csrfToken=([^;]*)/);
     return match ? match[1] : '';
   }
+
+  // Internal generate that takes an explicit session ID (for use in upload flow)
+  const generateWithId = useCallback(async (id, config) => {
+    if (!id) return;
+
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setStatus('generating');
+    setError(null);
+
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': getCsrfToken(),
+        },
+        credentials: 'same-origin',
+        signal: controller.signal,
+        body: JSON.stringify({ id, ...config }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Generation failed');
+
+      setPattern(data.pattern);
+      setStatus('ready');
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      setError(err.message);
+      setStatus('error');
+    }
+  }, []);
 
   const upload = useCallback(async (file) => {
     setStatus('uploading');
@@ -55,71 +90,35 @@ export function usePattern() {
       setSessionId(data.id);
       setUploadedFileName(file.name);
       setSuggestions(data.suggestions);
-      setStatus('uploaded');
+
+      // Auto-generate with suggested settings immediately
+      const s = data.suggestions;
+      const autoConfig = {
+        widthStitches: s?.suggestedWidth || 60,
+        numColors: s?.suggestedColors || 6,
+        stitchGauge: 18,
+        rowGauge: 24,
+        cleanup: true,
+        removeBackground: s?.suggestedBackgroundRemoval || false,
+        enhanceDetail: false,
+      };
+      await generateWithId(data.id, autoConfig);
     } catch (err) {
+      if (err.name === 'AbortError') return;
       setError(err.message);
       setStatus('error');
     }
-  }, []);
+  }, [generateWithId]);
 
+  // Public generate — uses current sessionId from state
   const generate = useCallback(async (config) => {
     if (!sessionId) return;
-
-    // Cancel any in-flight request
-    if (abortRef.current) {
-      abortRef.current.abort();
-    }
-
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setStatus('generating');
-    setError(null);
-
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': getCsrfToken(),
-        },
-        credentials: 'same-origin',
-        signal: controller.signal,
-        body: JSON.stringify({ id: sessionId, ...config }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Generation failed');
-
-      setPattern(data.pattern);
-      setStatus('ready');
-    } catch (err) {
-      if (err.name === 'AbortError') return; // Cancelled — ignore
-      setError(err.message);
-      setStatus('error');
-    }
-  }, [sessionId]);
-
-  /**
-   * Debounced generate — for live preview updates when config changes.
-   * Waits 400ms after last call before firing.
-   */
-  const debouncedGenerate = useCallback((config) => {
-    latestConfigRef.current = config;
-
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    debounceRef.current = setTimeout(() => {
-      generate(config);
-    }, 400);
-  }, [generate]);
+    await generateWithId(sessionId, config);
+  }, [sessionId, generateWithId]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
       if (abortRef.current) abortRef.current.abort();
     };
   }, []);
@@ -131,7 +130,6 @@ export function usePattern() {
 
   const reset = useCallback(() => {
     if (abortRef.current) abortRef.current.abort();
-    if (debounceRef.current) clearTimeout(debounceRef.current);
     setSessionId(null);
     setPattern(null);
     setStatus('idle');
@@ -149,7 +147,6 @@ export function usePattern() {
     suggestions,
     upload,
     generate,
-    debouncedGenerate,
     getDownloadUrl,
     reset,
   };

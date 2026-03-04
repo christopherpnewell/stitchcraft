@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 const GAUGE_PRESETS = [
   { label: 'Bulky (3 st/in)', stitchGauge: 12, rowGauge: 16 },
@@ -11,7 +11,7 @@ const GAUGE_PRESETS = [
 
 const WIDTH_OPTIONS = [30, 40, 60, 80, 100, 120, 150, 200];
 
-export default function PatternConfig({ onGenerate, onConfigChange, status, suggestions }) {
+export default function PatternConfig({ onGenerate, status, suggestions }) {
   const [widthStitches, setWidthStitches] = useState(60);
   const [numColors, setNumColors] = useState(6);
   const [gaugePreset, setGaugePreset] = useState(1);
@@ -20,10 +20,16 @@ export default function PatternConfig({ onGenerate, onConfigChange, status, sugg
   const [cleanup, setCleanup] = useState(true);
   const [removeBackground, setRemoveBackground] = useState(false);
   const [enhanceDetail, setEnhanceDetail] = useState(false);
-  const [suggestionsApplied, setSuggestionsApplied] = useState(false);
 
-  // Track whether we've generated at least once (to enable live preview)
-  const hasGenerated = useRef(false);
+  // Apply suggestions when they arrive from upload
+  useEffect(() => {
+    if (!suggestions) return;
+    setWidthStitches(suggestions.suggestedWidth || 60);
+    setNumColors(suggestions.suggestedColors || 6);
+    if (suggestions.suggestedBackgroundRemoval) {
+      setRemoveBackground(true);
+    }
+  }, [suggestions]);
 
   useEffect(() => {
     const preset = GAUGE_PRESETS[gaugePreset];
@@ -33,32 +39,13 @@ export default function PatternConfig({ onGenerate, onConfigChange, status, sugg
     }
   }, [gaugePreset]);
 
-  // Live preview: re-generate on config changes after first generate
-  useEffect(() => {
-    if (!hasGenerated.current || !onConfigChange) return;
-    onConfigChange({
-      widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail,
-    });
-  }, [widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail]);
-
   const isCustomGauge = GAUGE_PRESETS[gaugePreset].stitchGauge === null;
   const isGenerating = status === 'generating';
 
   const handleGenerate = () => {
-    hasGenerated.current = true;
     onGenerate({
       widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail,
     });
-  };
-
-  const applySuggestions = () => {
-    if (!suggestions) return;
-    setWidthStitches(suggestions.suggestedWidth);
-    setNumColors(suggestions.suggestedColors);
-    if (suggestions.suggestedBackgroundRemoval) {
-      setRemoveBackground(true);
-    }
-    setSuggestionsApplied(true);
   };
 
   const stitchAR = rowGauge / stitchGauge;
@@ -68,25 +55,6 @@ export default function PatternConfig({ onGenerate, onConfigChange, status, sugg
   return (
     <div className="space-y-5">
       <h3 className="text-lg font-semibold text-gray-800">Pattern Settings</h3>
-
-      {/* Smart Suggestions Banner */}
-      {suggestions && !suggestionsApplied && (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
-          <p className="text-sm text-blue-800 mb-1.5">
-            <span className="font-medium">Suggested settings</span> for this {suggestions.imageType}:
-          </p>
-          <p className="text-xs text-blue-700 mb-2">
-            {suggestions.suggestedWidth} stitches wide, {suggestions.suggestedColors} colors
-            {suggestions.suggestedBackgroundRemoval ? ', background removal on' : ''}
-          </p>
-          <button
-            onClick={applySuggestions}
-            className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Apply suggestions
-          </button>
-        </div>
-      )}
 
       {/* Grid Width */}
       <div>
@@ -216,7 +184,7 @@ export default function PatternConfig({ onGenerate, onConfigChange, status, sugg
             Generating Pattern...
           </span>
         ) : (
-          hasGenerated.current ? 'Regenerate Pattern' : 'Generate Pattern'
+          'Generate Pattern'
         )}
       </button>
     </div>

@@ -1,51 +1,25 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 
 const TIPS = [
-  // App tips
-  { text: 'Photos with simple backgrounds convert better. Try the "Remove background" option for pet photos.' },
-  { text: 'Try 80-100 stitches wide for detailed images. Simpler graphics look great at 40-60.' },
-  { text: 'Fewer colors = easier to knit but less detail. Start with 6 and adjust.' },
-  { text: '"Enhance detail" sharpens edges before converting — great for photographs that look blurry as patterns.' },
-  { text: 'The smart suggestions analyze your image and recommend settings — look for the blue banner after uploading.' },
-  { text: 'Use the zoom controls on the preview to inspect individual stitches before downloading.' },
-  // Knitting tips
-  { text: 'Print your pattern at actual size for easiest reading. The PDF is designed for letter/A4 paper.' },
-  { text: 'Use stitch markers every 10 stitches to stay on track with complex colorwork.' },
-  { text: 'The color legend shows suggested yarn — but any yarn in a similar shade will work.' },
-  { text: 'Start from the bottom-right of the chart for flat knitting. Odd rows read right-to-left.' },
-  { text: 'Wind small bobbins for each color section rather than carrying yarn across long stretches.' },
-  { text: 'Check your gauge swatch before starting! The finished dimensions depend on matching the pattern gauge.' },
-  { text: 'For intarsia (large color blocks), use separate yarn lengths. For Fair Isle (repeating patterns), carry yarns across the back.' },
-  { text: 'The "Smooth isolated stitches" option removes single-pixel color dots that would be impractical to knit.' },
+  { text: 'Photos with simple backgrounds convert better. Try the "Remove background" option for pet photos.', context: 'photo' },
+  { text: 'Try 80-100 stitches wide for detailed images. Simpler graphics look great at 40-60.', context: 'general' },
+  { text: 'Fewer colors = easier to knit but less detail. Start with 6 and adjust.', context: 'general' },
+  { text: '"Enhance detail" sharpens edges before converting — great for photographs.', context: 'photo' },
+  { text: 'Use the zoom controls on the preview to inspect individual stitches before downloading.', context: 'general' },
+  { text: 'Print your pattern at actual size. The PDF is designed for letter/A4 paper.', context: 'general' },
+  { text: 'Use stitch markers every 10 stitches to stay on track with complex colorwork.', context: 'knitting' },
+  { text: 'Start from the bottom-right of the chart for flat knitting. Odd rows read right-to-left.', context: 'knitting' },
+  { text: 'Check your gauge swatch before starting! Finished dimensions depend on matching the pattern gauge.', context: 'knitting' },
+  { text: 'For intarsia (large color blocks), use separate yarn lengths. For Fair Isle (repeating patterns), carry yarns across the back.', context: 'knitting' },
 ];
 
 export default function Tips() {
-  const [currentIndex, setCurrentIndex] = useState(() => Math.floor(Math.random() * TIPS.length));
   const [dismissed, setDismissed] = useState(false);
 
-  // Auto-rotate every 20 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex(prev => {
-        let next = prev + 1;
-        if (next >= TIPS.length) next = 0;
-        return next;
-      });
-    }, 20000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const nextTip = useCallback(() => {
-    setCurrentIndex(prev => {
-      let next = prev + 1;
-      if (next >= TIPS.length) next = 0;
-      return next;
-    });
-  }, []);
+  // Pick one random tip on mount
+  const tip = useMemo(() => TIPS[Math.floor(Math.random() * TIPS.length)], []);
 
   if (dismissed) return null;
-
-  const tip = TIPS[currentIndex];
 
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-3">
@@ -55,26 +29,16 @@ export default function Tips() {
         </svg>
       </div>
       <p className="text-sm text-amber-800 flex-1 leading-snug">{tip.text}</p>
-      <div className="flex items-center gap-1 flex-shrink-0">
-        <button
-          onClick={nextTip}
-          className="text-amber-500 hover:text-amber-700 p-1 transition-colors"
-          title="Next tip"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-        <button
-          onClick={() => setDismissed(true)}
-          className="text-amber-400 hover:text-amber-600 p-1 transition-colors"
-          title="Dismiss"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
+      <button
+        onClick={() => setDismissed(true)}
+        className="text-amber-400 hover:text-amber-600 p-1 transition-colors flex-shrink-0"
+        title="Dismiss"
+        aria-label="Dismiss tip"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
     </div>
   );
 }
