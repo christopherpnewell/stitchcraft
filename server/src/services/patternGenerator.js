@@ -105,9 +105,10 @@ export async function generatePattern(imagePath, config) {
   }
   const totalStitches = widthStitches * heightRows;
 
-  // Build palette info
+  // Build palette info — pass usedSuggestions set to avoid duplicate yarn mappings
+  const usedSuggestions = new Set();
   const paletteInfo = palette.map((rgb, i) => {
-    const yarn = suggestYarnColor(rgb);
+    const yarn = suggestYarnColor(rgb, usedSuggestions);
     return {
       rgb,
       hex: rgbToHex(rgb[0], rgb[1], rgb[2]),

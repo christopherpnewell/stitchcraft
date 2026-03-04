@@ -6,7 +6,7 @@
 ## Bug Fixes
 - [x] 1. Fix inverted image orientation in grid pipeline
 - [ ] 2. Identify and fix all non-functional buttons/UI elements
-- [ ] 3. Fix duplicate yarn suggestions — improve color-distance matching
+- [x] 3. Fix duplicate yarn suggestions — improve color-distance matching
 
 ## Enhancements
 - [ ] 4. Background removal toggle
