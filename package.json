@@ -1,0 +1,20 @@
+{
+  "name": "stitchcraft",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Image-to-knitting pattern generator",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && node --watch src/index.js",
+    "dev:client": "cd client && npx vite",
+    "build": "cd client && npx vite build",
+    "start": "cd server && node src/index.js",
+    "audit": "npm audit"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
