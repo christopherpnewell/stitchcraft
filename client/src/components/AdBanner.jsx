@@ -1,5 +1,14 @@
 import { useEffect, useRef } from 'react';
 
+// Cache publisher ID at module scope — the meta tag is static after page load
+let _publisherId = null;
+function getPublisherId() {
+  if (_publisherId === null) {
+    _publisherId = document.querySelector('meta[name="adsense-publisher"]')?.content || '';
+  }
+  return _publisherId;
+}
+
 /**
  * Google AdSense ad unit.
  * Reads publisher ID from a meta tag injected by the server,
@@ -27,10 +36,7 @@ export default function AdBanner({ slot, format = 'auto', className = '' }) {
     return null;
   }
 
-  // Get publisher ID from meta tag (injected server-side)
-  const publisherMeta = document.querySelector('meta[name="adsense-publisher"]');
-  const publisherId = publisherMeta?.content;
-
+  const publisherId = getPublisherId();
   if (!publisherId) {
     return null;
   }

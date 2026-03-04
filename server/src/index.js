@@ -16,6 +16,9 @@ import adminRoutes from './routes/admin.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
+// Trust first proxy (e.g., nginx, Cloudflare) for correct req.ip and rate limiting
+app.set('trust proxy', 1);
+
 // Ensure upload and tmp directories exist
 await fs.mkdir(config.uploadDir, { recursive: true });
 await fs.mkdir(config.tmpDir, { recursive: true });
@@ -77,6 +80,9 @@ try {
   await fs.access(clientDist);
   app.use(express.static(clientDist));
 
+  // Cache index.html at startup — avoid re-reading from disk on every request
+  const indexHtmlTemplate = await fs.readFile(path.join(clientDist, 'index.html'), 'utf8');
+
   // Route-specific meta for SEO
   const routeMeta = {
     '/': {
@@ -112,7 +118,7 @@ try {
     // Send 404 status for unknown routes (still render the SPA for client-side handling)
     const isKnown = knownRoutes.has(cleanPath);
 
-    let html = await fs.readFile(path.join(clientDist, 'index.html'), 'utf8');
+    let html = indexHtmlTemplate;
 
     // Inject route-specific meta tags
     const meta = routeMeta[safePath] || routeMeta['/'];

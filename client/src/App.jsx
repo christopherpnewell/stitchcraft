@@ -1,3 +1,4 @@
+import { lazy, Suspense, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { usePattern } from './hooks/usePattern.js';
 import ImageUpload from './components/ImageUpload.jsx';
@@ -6,9 +7,17 @@ import PatternPreview from './components/PatternPreview.jsx';
 import ColorLegend from './components/ColorLegend.jsx';
 import Tips from './components/Tips.jsx';
 import AdBanner from './components/AdBanner.jsx';
-import HowItWorks from './pages/HowItWorks.jsx';
-import FAQ from './pages/FAQ.jsx';
-import About from './pages/About.jsx';
+
+// Code-split secondary pages — only loaded when navigated to
+const HowItWorks = lazy(() => import('./pages/HowItWorks.jsx'));
+const FAQ = lazy(() => import('./pages/FAQ.jsx'));
+const About = lazy(() => import('./pages/About.jsx'));
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
 
 export default function App() {
   const location = useLocation();
@@ -49,14 +58,17 @@ export default function App() {
         </div>
       )}
 
+      <ScrollToTop />
       <div className="flex-1">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/how-it-works" element={<HowItWorks />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/about" element={<About />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-400">Loading...</div>}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/about" element={<About />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </div>
 
       <footer className="border-t border-gray-100 mt-16 py-6 text-center text-xs text-gray-400 space-y-2">
