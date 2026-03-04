@@ -162,7 +162,7 @@ router.get('/download/:id', async (req, res, next) => {
     const pdfBuffer = await generatePdf(session.pattern);
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="StitchCraft-Pattern-${id.slice(0, 8)}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="KnitIt-Pattern-${id.slice(0, 8)}.pdf"`);
     res.setHeader('Content-Length', pdfBuffer.length);
     res.send(pdfBuffer);
 

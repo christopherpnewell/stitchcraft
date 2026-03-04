@@ -32,7 +32,7 @@ export default function App() {
               </svg>
             </div>
             <h1 className="text-xl font-display font-bold text-gray-900">
-              Stitch<span className="text-brand-600">Craft</span>
+              Knit<span className="text-brand-600"> It</span>
             </h1>
           </div>
           {status !== 'idle' && (
@@ -167,7 +167,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-gray-100 mt-16 py-6 text-center text-xs text-gray-400">
-        StitchCraft — Image to Knitting Pattern Generator
+        Knit It — Image to Knitting Pattern Generator
       </footer>
     </div>
   );

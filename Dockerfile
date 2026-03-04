@@ -24,10 +24,10 @@ COPY --from=client-build /app/client/dist ./client/dist
 RUN mkdir -p /app/server/uploads /app/server/tmp
 
 # Non-root user for security
-RUN addgroup -g 1001 -S stitchcraft && \
-    adduser -S stitchcraft -u 1001 -G stitchcraft && \
-    chown -R stitchcraft:stitchcraft /app
-USER stitchcraft
+RUN addgroup -g 1001 -S knitit && \
+    adduser -S knitit -u 1001 -G knitit && \
+    chown -R knitit:knitit /app
+USER knitit
 
 ENV NODE_ENV=production
 ENV PORT=3000

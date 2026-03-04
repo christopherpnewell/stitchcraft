@@ -1,5 +1,5 @@
 /**
- * StitchCraft server — Express application entry point.
+ * Knit It server — Express application entry point.
  */
 import express from 'express';
 import cookieParser from 'cookie-parser';
@@ -47,7 +47,7 @@ try {
   // Client not built yet — development mode
   if (config.isDev) {
     app.get('/', (req, res) => {
-      res.json({ message: 'StitchCraft API running. Build the client with: cd client && npm run build' });
+      res.json({ message: 'Knit It API running. Build the client with: cd client && npm run build' });
     });
   }
 }
@@ -56,5 +56,5 @@ try {
 app.use(errorHandler);
 
 app.listen(config.port, () => {
-  console.log(`StitchCraft server running on port ${config.port} [${config.nodeEnv}]`);
+  console.log(`Knit It server running on port ${config.port} [${config.nodeEnv}]`);
 });
