@@ -38,6 +38,31 @@ if (config.enableAds && config.adsensePublisherId) {
   });
 }
 
+// robots.txt
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').send(`User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+Sitemap: ${config.siteUrl}/sitemap.xml
+`);
+});
+
+// sitemap.xml
+app.get('/sitemap.xml', (req, res) => {
+  const urls = ['/', '/how-it-works', '/faq', '/about'];
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => `  <url>
+    <loc>${config.siteUrl}${u}</loc>
+    <changefreq>${u === '/' ? 'weekly' : 'monthly'}</changefreq>
+    <priority>${u === '/' ? '1.0' : '0.7'}</priority>
+  </url>`).join('\n')}
+</urlset>`;
+  res.type('application/xml').send(xml);
+});
+
 // API routes
 app.use('/api', patternRoutes);
 
@@ -50,11 +75,63 @@ try {
   await fs.access(clientDist);
   app.use(express.static(clientDist));
 
-  // SPA fallback — inject ad config into the HTML
+  // Route-specific meta for SEO
+  const routeMeta = {
+    '/': {
+      title: 'Knit It — Image to Knitting Pattern Generator',
+      description: 'Turn any image into a professional colorwork knitting pattern. Upload a photo, drawing, or logo and get a print-ready PDF chart with yarn suggestions, gauge notes, and construction instructions.',
+    },
+    '/how-it-works': {
+      title: 'How It Works — Knit It',
+      description: 'Learn how Knit It converts any image into a colorwork knitting pattern in three simple steps: upload, customize, and download a print-ready PDF.',
+    },
+    '/faq': {
+      title: 'FAQ — Knit It',
+      description: 'Frequently asked questions about Knit It: file types, pattern width, gauge, colors, background removal, project types, privacy, and more.',
+    },
+    '/about': {
+      title: 'About — Knit It',
+      description: 'About Knit It: a free web tool that converts any image into a colorwork knitting pattern with aspect ratio correction, smart color quantization, and professional PDF output.',
+    },
+  };
+
+  // SPA fallback — inject route-specific meta and ad config
   app.get('*', async (req, res) => {
-    if (req.path.startsWith('/api')) return;
+    if (req.path.startsWith('/api') || req.path.startsWith('/admin')) return;
 
     let html = await fs.readFile(path.join(clientDist, 'index.html'), 'utf8');
+
+    // Inject route-specific meta tags
+    const meta = routeMeta[req.path] || routeMeta['/'];
+    html = html.replace(/<title>[^<]*<\/title>/, `<title>${meta.title}</title>`);
+    html = html.replace(
+      /(<meta name="description" content=")[^"]*(")/,
+      `$1${meta.description}$2`
+    );
+    html = html.replace(
+      /(<meta property="og:title" content=")[^"]*(")/,
+      `$1${meta.title}$2`
+    );
+    html = html.replace(
+      /(<meta property="og:description" content=")[^"]*(")/,
+      `$1${meta.description}$2`
+    );
+    html = html.replace(
+      /(<meta property="og:url" content=")[^"]*(")/,
+      `$1${config.siteUrl}${req.path}$2`
+    );
+    html = html.replace(
+      /(<link rel="canonical" href=")[^"]*(")/,
+      `$1${config.siteUrl}${req.path}$2`
+    );
+    html = html.replace(
+      /(<meta name="twitter:title" content=")[^"]*(")/,
+      `$1${meta.title}$2`
+    );
+    html = html.replace(
+      /(<meta name="twitter:description" content=")[^"]*(")/,
+      `$1${meta.description}$2`
+    );
 
     // Inject AdSense script and config if ads are enabled
     if (config.enableAds && config.adsensePublisherId) {
@@ -64,7 +141,6 @@ try {
     <script>window.__AD_SLOT_TOP__="${config.adSlotTop}";window.__AD_SLOT_SIDEBAR__="${config.adSlotSidebar}";</script>`;
       html = html.replace('</head>', `${adScript}\n  </head>`);
     } else {
-      // No ads — define empty slots so the component renders nothing
       const noAdScript = `<script>window.__AD_SLOT_TOP__="";window.__AD_SLOT_SIDEBAR__="";</script>`;
       html = html.replace('</head>', `${noAdScript}\n  </head>`);
     }

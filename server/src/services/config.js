@@ -38,6 +38,9 @@ export const config = {
   // Affiliate links (optional)
   enableAffiliates: process.env.ENABLE_AFFILIATES === 'true',
   affiliateTag: process.env.AFFILIATE_TAG || '',
+
+  // Site URL for sitemap / canonical (no trailing slash)
+  siteUrl: (process.env.SITE_URL || 'https://knitit.app').replace(/\/+$/, ''),
 };
 
 export function getMaxFileSize() {

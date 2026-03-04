@@ -14,10 +14,10 @@
 - [x] 9. Anonymized usage analytics (SQLite, admin dashboard)
 
 ## Phase 3: SEO & Discoverability
-- [ ] 10. JSON-LD structured data
-- [ ] 11. Meta tags & Open Graph
-- [ ] 12. Content pages (landing, how-it-works, FAQ, about) with SSR
-- [ ] 13. Technical SEO (sitemap.xml, robots.txt, clean URLs, CWV)
+- [x] 10. JSON-LD structured data
+- [x] 11. Meta tags & Open Graph
+- [x] 12. Content pages (landing, how-it-works, FAQ, about) with SSR
+- [x] 13. Technical SEO (sitemap.xml, robots.txt, clean URLs, CWV)
 
 ## Phase 4: Comprehensive Testing
 - [ ] 14. Full application testing (code review, API, UI, ADA, security, performance)
