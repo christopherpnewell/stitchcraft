@@ -290,7 +290,7 @@ function HomePage() {
           </div>
 
           {/* Right area — preview */}
-          <div className="space-y-6">
+          <div className="space-y-6 min-w-0">
             {status === 'generating' && !pattern && (
               <div role="status" className="flex items-center justify-center py-20">
                 <div className="text-center">
