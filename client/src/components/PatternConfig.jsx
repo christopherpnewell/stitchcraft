@@ -96,7 +96,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
         {widthStitches > 100 && (
           <div className="mt-1"><PremiumBadge /></div>
         )}
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-xs text-gray-500 mt-1">
           Wider = more detail, but takes longer to knit
         </p>
       </div>
@@ -115,7 +115,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
           onChange={e => setNumColors(parseInt(e.target.value, 10))}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-600"
         />
-        <div className="flex justify-between text-xs text-gray-400">
+        <div className="flex justify-between text-xs text-gray-500">
           <span>2 (simple)</span>
           <span>12 (detailed)</span>
         </div>
@@ -136,7 +136,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
           className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
         >
           {GAUGE_PRESETS.map((p, i) => (
-            <option key={i} value={i}>{p.label}</option>
+            <option key={p.label} value={i}>{p.label}</option>
           ))}
         </select>
       </div>
@@ -176,11 +176,16 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
             <option key={pt.value} value={pt.value}>{pt.label}</option>
           ))}
         </select>
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-xs text-gray-500 mt-1">
           Adds project-specific construction instructions to your PDF
         </p>
         {projectType.startsWith('sweater') && (
           <div className="mt-1"><PremiumBadge /></div>
+        )}
+        {projectType === 'scarf' && (widthStitches / stitchGauge) * 4 > 12 && (
+          <p className="text-xs text-amber-600 mt-1">
+            Note: At this width, your scarf would be {((widthStitches / stitchGauge) * 4).toFixed(1)}" wide. Most scarves are 6–12" wide. Consider reducing width.
+          </p>
         )}
       </div>
 
@@ -203,7 +208,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
             label="Remove background"
             hint="Works best with photos that have a clear subject against a distinct background"
           />
-          {removeBackground && <div className="ml-6.5 mt-0.5"><PremiumBadge /></div>}
+          {removeBackground && <div className="ml-[1.625rem] mt-0.5"><PremiumBadge /></div>}
         </div>
         <Toggle checked={enhanceDetail} onChange={setEnhanceDetail}
           label="Enhance detail"
@@ -251,7 +256,7 @@ function Toggle({ checked, onChange, label, hint }) {
       />
       <div>
         <span className="text-sm text-gray-700">{label}</span>
-        {hint && <p className="text-xs text-gray-400 leading-tight">{hint}</p>}
+        {hint && <p className="text-xs text-gray-500 leading-tight">{hint}</p>}
       </div>
     </label>
   );

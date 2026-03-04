@@ -60,7 +60,14 @@ router.use(requireAuth);
 
 router.get('/', (req, res) => {
   const days = Math.min(365, Math.max(1, parseInt(req.query.days || '30', 10) || 30));
-  const summary = getAnalyticsSummary(days);
+
+  let summary;
+  try {
+    summary = getAnalyticsSummary(days);
+  } catch (err) {
+    console.error('Analytics query failed:', err);
+    return res.status(500).send('Analytics temporarily unavailable. Check server logs.');
+  }
 
   if (req.headers.accept?.includes('application/json')) {
     return res.json(summary);

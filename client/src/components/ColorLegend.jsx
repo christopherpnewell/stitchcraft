@@ -19,7 +19,7 @@ export default function ColorLegend({ pattern }) {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {pattern.palette.map((color, i) => (
-              <tr key={i} className="hover:bg-gray-50 transition-colors">
+              <tr key={color.hex} className="hover:bg-gray-50 transition-colors">
                 <td className="px-3 py-2">
                   <div className="flex items-center gap-2">
                     <div
@@ -60,7 +60,7 @@ export default function ColorLegend({ pattern }) {
         </table>
       </div>
       {hasAffiliateLinks && (
-        <p className="text-xs text-gray-400 italic">
+        <p className="text-xs text-gray-500 italic">
           Yarn links may earn us a small commission at no extra cost to you.
         </p>
       )}

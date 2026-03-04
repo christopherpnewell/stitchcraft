@@ -71,7 +71,7 @@ export default function App() {
         </Suspense>
       </div>
 
-      <footer className="border-t border-gray-100 mt-16 py-6 text-center text-xs text-gray-400 space-y-2">
+      <footer className="border-t border-gray-100 mt-16 py-6 text-center text-xs text-gray-500 space-y-2">
         <nav aria-label="Footer navigation" className="flex justify-center gap-4 sm:hidden mb-2">
           <Link to="/how-it-works" className="hover:text-gray-600">How It Works</Link>
           <Link to="/faq" className="hover:text-gray-600">FAQ</Link>
@@ -216,6 +216,7 @@ function HomePage() {
             {pattern && downloadUrl && (
               <a
                 href={downloadUrl}
+                download
                 className="
                   block w-full py-3 rounded-xl text-center font-semibold text-base
                   bg-gray-900 text-white hover:bg-gray-800 transition-colors shadow-sm

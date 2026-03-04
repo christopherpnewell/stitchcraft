@@ -6,17 +6,21 @@ export default function PatternPreview({ pattern }) {
   const [zoom, setZoom] = useState(1);
   const [containerWidth, setContainerWidth] = useState(600);
 
-  // Observe container width for responsive sizing
+  // Observe container width for responsive sizing (debounced with rAF)
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+    let rafId = 0;
     const observer = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
-      }
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        for (const entry of entries) {
+          setContainerWidth(entry.contentRect.width);
+        }
+      });
     });
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => { cancelAnimationFrame(rafId); observer.disconnect(); };
   }, []);
 
   // Calculate cell dimensions respecting stitch aspect ratio
@@ -61,11 +65,15 @@ export default function PatternPreview({ pattern }) {
     const ctx = canvas.getContext('2d');
     const dpr = window.devicePixelRatio || 1;
 
-    canvas.width = layout.totalWidth * dpr;
-    canvas.height = layout.totalHeight * dpr;
+    // Clamp canvas dimensions to browser max (16384px)
+    const maxDim = 16384;
+    const clampedDpr = Math.min(dpr, maxDim / Math.max(layout.totalWidth, layout.totalHeight));
+
+    canvas.width = layout.totalWidth * clampedDpr;
+    canvas.height = layout.totalHeight * clampedDpr;
     canvas.style.width = `${layout.totalWidth}px`;
     canvas.style.height = `${layout.totalHeight}px`;
-    ctx.scale(dpr, dpr);
+    ctx.scale(clampedDpr, clampedDpr);
 
     const { grid, palette, widthStitches, heightRows } = pattern;
     const { cellWidth, cellHeight, chartWidth } = layout;
@@ -178,7 +186,7 @@ export default function PatternPreview({ pattern }) {
           <button
             onClick={() => setZoom(z => Math.max(0.25, z - 0.25))}
             aria-label="Zoom out"
-            className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold"
+            className="w-11 h-11 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold"
           >
             -
           </button>
@@ -186,7 +194,7 @@ export default function PatternPreview({ pattern }) {
           <button
             onClick={() => setZoom(z => Math.min(4, z + 0.25))}
             aria-label="Zoom in"
-            className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold"
+            className="w-11 h-11 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold"
           >
             +
           </button>
