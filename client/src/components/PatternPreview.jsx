@@ -163,10 +163,15 @@ export default function PatternPreview({ pattern }) {
     }
   }, [pattern, layout]);
 
+  const isSweater = pattern?.projectType?.startsWith('sweater');
+
   if (!pattern || !layout) return null;
 
   return (
     <div className="space-y-3">
+      {/* Sweater placement silhouette */}
+      {isSweater && <SweaterSilhouette projectType={pattern.projectType} />}
+
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-800">Pattern Preview</h3>
         <div className="flex items-center gap-2">
@@ -219,6 +224,57 @@ function StatBox({ label, value }) {
     <div className="bg-gray-50 rounded-lg py-2 px-3">
       <div className="text-lg font-semibold text-brand-700">{value}</div>
       <div className="text-xs text-gray-500">{label}</div>
+    </div>
+  );
+}
+
+function SweaterSilhouette({ projectType }) {
+  // Simple SVG sweater outline showing where the design goes
+  const isBack = projectType === 'sweaterBack';
+  const isLeft = projectType === 'sweaterChestLeft';
+
+  // Chart placement highlight
+  let cx, cy, cw, ch;
+  if (isBack) {
+    cx = 60; cy = 55; cw = 80; ch = 60; // Centered on back
+  } else if (isLeft) {
+    cx = 45; cy = 40; cw = 35; ch = 30; // Upper-left chest
+  } else {
+    cx = 120; cy = 40; cw = 35; ch = 30; // Upper-right chest
+  }
+
+  return (
+    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+      <p className="text-xs text-gray-500 mb-2 font-medium">
+        Chart Placement — {isBack ? 'Back Panel' : isLeft ? 'Left Chest' : 'Right Chest'}
+      </p>
+      <svg viewBox="0 0 200 160" className="w-full max-w-[240px] mx-auto" fill="none">
+        {/* Sweater outline */}
+        <path
+          d="M50 20 L30 10 L10 45 L35 55 L35 140 L165 140 L165 55 L190 45 L170 10 L150 20 C140 30 130 35 100 35 C70 35 60 30 50 20Z"
+          stroke="#999"
+          strokeWidth="2"
+          fill="#f3f4f6"
+        />
+        {/* Sleeves */}
+        <path d="M35 55 L10 55 L10 45" stroke="#999" strokeWidth="2" fill="none" />
+        <path d="M165 55 L190 55 L190 45" stroke="#999" strokeWidth="2" fill="none" />
+        {/* Neckline */}
+        <path d="M50 20 C60 30 70 35 100 35 C130 35 140 30 150 20" stroke="#999" strokeWidth="2" fill="none" />
+        {/* Chart placement highlight */}
+        <rect
+          x={cx} y={cy} width={cw} height={ch}
+          rx="3" ry="3"
+          fill="#eb458933" stroke="#eb4589" strokeWidth="1.5"
+          strokeDasharray="4 2"
+        />
+        <text
+          x={cx + cw / 2} y={cy + ch / 2 + 3}
+          textAnchor="middle" fontSize="8" fill="#d92668" fontWeight="600"
+        >
+          Chart
+        </text>
+      </svg>
     </div>
   );
 }

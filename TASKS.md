@@ -1,11 +1,11 @@
 # Knit It — v3 Task List
 
 ## Phase 1: Bug Fixes
-- [ ] 1. Auto-generate on upload (apply suggestions + generate immediately)
-- [ ] 2. Remove auto-regeneration on setting changes (button-only)
-- [ ] 3. Fix status badge transitions (no stale "Ready to configure")
-- [ ] 4. Fix background removal (debug/replace non-functional implementation)
-- [ ] 5. Simplify tips system (single static tip, X to dismiss, no carousel)
+- [x] 1. Auto-generate on upload (apply suggestions + generate immediately)
+- [x] 2. Remove auto-regeneration on setting changes (button-only)
+- [x] 3. Fix status badge transitions (no stale "Ready to configure")
+- [x] 4. Fix background removal (replaced @imgly with sharp-based approach)
+- [x] 5. Simplify tips system (single static tip, X to dismiss, no carousel)
 
 ## Phase 2: New Features
 - [ ] 6. Project type & placement templates (blanket, scarf, pillow, wall hanging, sweater, tote)

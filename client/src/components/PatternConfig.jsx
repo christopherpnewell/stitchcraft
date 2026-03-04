@@ -11,6 +11,17 @@ const GAUGE_PRESETS = [
 
 const WIDTH_OPTIONS = [30, 40, 60, 80, 100, 120, 150, 200];
 
+const PROJECT_TYPES = [
+  { value: 'blanket', label: 'Blanket / Afghan' },
+  { value: 'scarf', label: 'Scarf / Cowl' },
+  { value: 'pillow', label: 'Pillow / Cushion' },
+  { value: 'wallHanging', label: 'Wall Hanging / Tapestry' },
+  { value: 'sweaterBack', label: 'Sweater — Back Panel' },
+  { value: 'sweaterChestLeft', label: 'Sweater — Chest Patch (Left)' },
+  { value: 'sweaterChestRight', label: 'Sweater — Chest Patch (Right)' },
+  { value: 'toteBag', label: 'Tote Bag' },
+];
+
 export default function PatternConfig({ onGenerate, status, suggestions }) {
   const [widthStitches, setWidthStitches] = useState(60);
   const [numColors, setNumColors] = useState(6);
@@ -20,6 +31,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
   const [cleanup, setCleanup] = useState(true);
   const [removeBackground, setRemoveBackground] = useState(false);
   const [enhanceDetail, setEnhanceDetail] = useState(false);
+  const [projectType, setProjectType] = useState('blanket');
 
   // Apply suggestions when they arrive from upload
   useEffect(() => {
@@ -44,7 +56,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
 
   const handleGenerate = () => {
     onGenerate({
-      widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail,
+      widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail, projectType,
     });
   };
 
@@ -137,6 +149,25 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
           </div>
         </div>
       )}
+
+      {/* Project Type */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          Project Type
+        </label>
+        <select
+          value={projectType}
+          onChange={e => setProjectType(e.target.value)}
+          className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+        >
+          {PROJECT_TYPES.map(pt => (
+            <option key={pt.value} value={pt.value}>{pt.label}</option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-400 mt-1">
+          Adds project-specific construction instructions to your PDF
+        </p>
+      </div>
 
       {/* Stitch aspect ratio */}
       <div className="text-xs text-gray-500 bg-gray-50 p-2.5 rounded-lg">

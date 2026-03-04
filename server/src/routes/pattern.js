@@ -106,7 +106,7 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
 
   try {
     // Only allow known fields
-    const { id, widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail } = req.body;
+    const { id, widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail, projectType } = req.body;
 
     if (!id || !patternStore.has(id)) {
       return res.status(404).json({ error: 'Upload session not found. Please upload an image first.' });
@@ -169,6 +169,11 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
       enhanceDetail: enhanceDetail === true,
     });
 
+    // Validate project type
+    const validProjectTypes = ['blanket', 'scarf', 'pillow', 'wallHanging', 'sweaterBack', 'sweaterChestLeft', 'sweaterChestRight', 'toteBag'];
+    const validatedProjectType = validProjectTypes.includes(projectType) ? projectType : 'blanket';
+
+    pattern.projectType = validatedProjectType;
     session.pattern = pattern;
 
     res.json({
@@ -185,6 +190,7 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
         colorPercentages: pattern.colorPercentages,
         colorYardages: pattern.colorYardages,
         totalStitches: pattern.totalStitches,
+        projectType: validatedProjectType,
       },
     });
   } catch (err) {
