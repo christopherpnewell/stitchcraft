@@ -49,13 +49,15 @@ Sitemap: ${config.siteUrl}/sitemap.xml
 `);
 });
 
-// sitemap.xml
+// sitemap.xml — with lastmod dates (the only tag Google uses)
 app.get('/sitemap.xml', (req, res) => {
+  const lastmod = new Date().toISOString().split('T')[0];
   const urls = ['/', '/how-it-works', '/faq', '/about'];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map(u => `  <url>
     <loc>${config.siteUrl}${u}</loc>
+    <lastmod>${lastmod}</lastmod>
     <changefreq>${u === '/' ? 'weekly' : 'monthly'}</changefreq>
     <priority>${u === '/' ? '1.0' : '0.7'}</priority>
   </url>`).join('\n')}
@@ -86,7 +88,7 @@ try {
       description: 'Learn how Knit It converts any image into a colorwork knitting pattern in three simple steps: upload, customize, and download a print-ready PDF.',
     },
     '/faq': {
-      title: 'FAQ — Knit It',
+      title: 'Knitting Pattern Generator FAQ | Knit It',
       description: 'Frequently asked questions about Knit It: file types, pattern width, gauge, colors, background removal, project types, privacy, and more.',
     },
     '/about': {
@@ -95,14 +97,25 @@ try {
     },
   };
 
+  // Known SPA routes — anything else gets 404 status
+  const knownRoutes = new Set(Object.keys(routeMeta));
+
   // SPA fallback — inject route-specific meta and ad config
   app.get('*', async (req, res) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/admin')) return;
 
+    // Normalize path: strip trailing slashes
+    const cleanPath = req.path.replace(/\/+$/, '') || '/';
+    // Sanitize path for HTML injection — only allow known routes
+    const safePath = knownRoutes.has(cleanPath) ? cleanPath : '/';
+
+    // Send 404 status for unknown routes (still render the SPA for client-side handling)
+    const isKnown = knownRoutes.has(cleanPath);
+
     let html = await fs.readFile(path.join(clientDist, 'index.html'), 'utf8');
 
     // Inject route-specific meta tags
-    const meta = routeMeta[req.path] || routeMeta['/'];
+    const meta = routeMeta[safePath] || routeMeta['/'];
     html = html.replace(/<title>[^<]*<\/title>/, `<title>${meta.title}</title>`);
     html = html.replace(
       /(<meta name="description" content=")[^"]*(")/,
@@ -118,11 +131,11 @@ try {
     );
     html = html.replace(
       /(<meta property="og:url" content=")[^"]*(")/,
-      `$1${config.siteUrl}${req.path}$2`
+      `$1${config.siteUrl}${safePath}$2`
     );
     html = html.replace(
       /(<link rel="canonical" href=")[^"]*(")/,
-      `$1${config.siteUrl}${req.path}$2`
+      `$1${config.siteUrl}${safePath}$2`
     );
     html = html.replace(
       /(<meta name="twitter:title" content=")[^"]*(")/,
@@ -146,7 +159,7 @@ try {
     }
 
     res.setHeader('Content-Type', 'text/html');
-    res.send(html);
+    res.status(isKnown ? 200 : 404).send(html);
   });
 } catch {
   if (config.isDev) {

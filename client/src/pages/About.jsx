@@ -1,6 +1,11 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function About() {
+  useEffect(() => {
+    document.title = 'About — Knit It';
+  }, []);
+
   return (
     <article className="max-w-3xl mx-auto py-12 px-4 sm:px-6">
       <h1 className="text-3xl sm:text-4xl font-display font-bold text-gray-900 mb-6">

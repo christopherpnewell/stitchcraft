@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const FAQS = [
@@ -19,7 +20,7 @@ const FAQS = [
   },
   {
     q: 'What does "Smooth isolated stitches" do?',
-    a: 'It removes single-stitch color changes that would be impractical to knit. These "orphan stitches" create floats that are too long on the back of the work and look messy. Smoothing replaces them with the surrounding color.',
+    a: 'It removes single-stitch color changes that would be impractical to knit. These "orphan stitches" make color management difficult with too many yarn ends in a small area. Smoothing replaces them with the surrounding color.',
   },
   {
     q: 'Does background removal work on all images?',
@@ -44,8 +45,31 @@ const FAQS = [
 ];
 
 export default function FAQ() {
+  useEffect(() => {
+    document.title = 'Knitting Pattern Generator FAQ | Knit It';
+  }, []);
+
+  // Build FAQPage JSON-LD
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQS.map(faq => ({
+      '@type': 'Question',
+      name: faq.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.a,
+      },
+    })),
+  };
+
   return (
     <article className="max-w-3xl mx-auto py-12 px-4 sm:px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+
       <h1 className="text-3xl sm:text-4xl font-display font-bold text-gray-900 mb-6">
         Frequently Asked Questions
       </h1>
@@ -54,8 +78,8 @@ export default function FAQ() {
       </p>
 
       <div className="space-y-6">
-        {FAQS.map((faq, i) => (
-          <div key={i} className="border-b border-gray-100 pb-6 last:border-0">
+        {FAQS.map((faq) => (
+          <div key={faq.q} className="border-b border-gray-100 pb-6 last:border-0">
             <h2 className="text-base font-semibold text-gray-800 mb-2">{faq.q}</h2>
             <p className="text-sm text-gray-600 leading-relaxed">{faq.a}</p>
           </div>

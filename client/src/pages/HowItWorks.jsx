@@ -1,6 +1,11 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function HowItWorks() {
+  useEffect(() => {
+    document.title = 'How It Works — Knit It';
+  }, []);
+
   return (
     <article className="max-w-3xl mx-auto py-12 px-4 sm:px-6">
       <h1 className="text-3xl sm:text-4xl font-display font-bold text-gray-900 mb-6">
@@ -33,7 +38,7 @@ export default function HowItWorks() {
           <p>
             Knit It generates a pixel-perfect colorwork chart with accurate stitch aspect ratio.
             View the chart on screen with a full color legend including yarn suggestions,
-            then download a print-ready PDF with row-by-row instructions, yardage estimates,
+            then download a print-ready PDF with a visual colorwork chart, yardage estimates,
             and construction notes for your chosen project type.
           </p>
         </Step>
