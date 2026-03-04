@@ -118,6 +118,7 @@ export function usePattern() {
         cleanup: true,
         removeBackground: s?.suggestedBackgroundRemoval || false,
         enhanceDetail: false,
+        projectType: 'blanket',
       };
       await generateWithId(data.id, autoConfig);
     } catch (err) {
