@@ -40,7 +40,7 @@ export const config = {
   affiliateTag: process.env.AFFILIATE_TAG || '',
 
   // Site URL for sitemap / canonical (no trailing slash)
-  siteUrl: (process.env.SITE_URL || 'https://knitit.app').replace(/\/+$/, ''),
+  siteUrl: (process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, ''),
 };
 
 // Fail startup in production if CSRF secret is the insecure default

@@ -112,11 +112,7 @@ export default function Privacy() {
 
       <Section title="Contact">
         <p>
-          For privacy-related questions, email us at{' '}
-          <a href="mailto:privacy@knitit.app" className="text-brand-600 underline hover:text-brand-700">
-            privacy@knitit.app
-          </a>
-          .
+          For privacy-related questions, contact us via the Knit It website.
         </p>
       </Section>
 

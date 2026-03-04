@@ -1,5 +1,5 @@
 # Stage 1: Build client
-FROM node:20-alpine AS client-build
+FROM node:22-alpine AS client-build
 WORKDIR /app/client
 COPY client/package.json client/package-lock.json ./
 RUN npm ci
@@ -7,7 +7,7 @@ COPY client/ ./
 RUN npx vite build
 
 # Stage 2: Production server
-FROM node:20-alpine
+FROM node:22-alpine
 WORKDIR /app
 
 # Install server dependencies

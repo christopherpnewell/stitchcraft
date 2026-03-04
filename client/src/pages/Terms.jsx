@@ -13,7 +13,7 @@ export default function Terms() {
 
       <Section title="Acceptance of Terms">
         <p>
-          By using Knit It (&ldquo;the service&rdquo;) at knitit.app, you agree to these Terms of
+          By using Knit It (&ldquo;the service&rdquo;), you agree to these Terms of
           Service. If you do not agree, please do not use the service.
         </p>
       </Section>
@@ -93,11 +93,7 @@ export default function Terms() {
 
       <Section title="Contact">
         <p>
-          For questions about these terms, email{' '}
-          <a href="mailto:legal@knitit.app" className="text-brand-600 underline hover:text-brand-700">
-            legal@knitit.app
-          </a>
-          .
+          For questions about these terms, contact us via the Knit It website.
         </p>
       </Section>
 
