@@ -367,6 +367,7 @@ function drawLegendPage(doc, pattern) {
   doc.moveDown(0.3);
 
   for (let i = 0; i < pattern.palette.length; i++) {
+    if (pattern.colorYardages[i] === 0) continue;
     const color = pattern.palette[i];
     const y = doc.y;
 
@@ -394,7 +395,7 @@ function drawLegendPage(doc, pattern) {
       .text(`${pattern.colorPercentages[i]}%`, cols.usage, rowY + 7, { width: 55, lineBreak: false });
 
     doc.fontSize(8).font('Helvetica').fillColor('#555')
-      .text(`~${pattern.colorYardages[i]}`, cols.yardage, rowY + 7, { width: 45, lineBreak: false });
+      .text(`~${Math.max(1, pattern.colorYardages[i])}`, cols.yardage, rowY + 7, { width: 45, lineBreak: false });
 
     const yarnText = color.affiliateUrl
       ? `${color.yarnSuggestion}\n${color.affiliateUrl}`

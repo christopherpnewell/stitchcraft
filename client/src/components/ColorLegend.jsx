@@ -1,7 +1,12 @@
 export default function ColorLegend({ pattern }) {
   if (!pattern) return null;
 
-  const hasAffiliateLinks = pattern.palette.some(c => c.affiliateUrl);
+  // Build filtered list excluding zero-usage colors
+  const colors = pattern.palette
+    .map((color, i) => ({ color, pct: pattern.colorPercentages[i], yards: pattern.colorYardages[i], idx: i }))
+    .filter(c => c.yards > 0);
+
+  const hasAffiliateLinks = colors.some(c => c.color.affiliateUrl);
 
   return (
     <div className="space-y-3">
@@ -19,7 +24,7 @@ export default function ColorLegend({ pattern }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {pattern.palette.map((color, i) => (
+              {colors.map(({ color, pct, yards }) => (
                 <tr key={`${color.label}-${color.hex}`} className="hover:bg-gray-50 transition-colors">
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2">
@@ -36,8 +41,8 @@ export default function ColorLegend({ pattern }) {
                     </div>
                   </td>
                   <td className="px-3 py-2 font-medium text-gray-700">{color.label}</td>
-                  <td className="px-3 py-2 text-gray-600">{pattern.colorPercentages[i]}%</td>
-                  <td className="px-3 py-2 text-gray-600 hidden sm:table-cell">~{pattern.colorYardages[i]}</td>
+                  <td className="px-3 py-2 text-gray-600">{pct}%</td>
+                  <td className="px-3 py-2 text-gray-600 hidden sm:table-cell">~{yards}</td>
                   <td className="px-3 py-2 text-gray-500 text-xs hidden sm:table-cell">
                     <div className="flex items-center gap-2">
                       <span>{color.yarnSuggestion}</span>
