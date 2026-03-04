@@ -91,6 +91,13 @@ export function validateUpload(file) {
  * Returns path to the clean re-encoded file
  */
 export async function sanitizeAndSave(buffer, uploadDir) {
+  // Reject extreme dimensions before decompressing — prevents memory exhaustion
+  // (a valid PNG can encode 100000x100000 in a tiny file yet expand to ~40GB in RAM)
+  const { width, height } = await sharp(buffer).metadata();
+  if ((width || 0) > 10000 || (height || 0) > 10000) {
+    throw Object.assign(new Error('Image dimensions too large. Maximum 10000×10000 px.'), { status: 400 });
+  }
+
   const id = uuidv4();
   const outputPath = path.join(uploadDir, `${id}.png`);
 

@@ -7,11 +7,14 @@ import PatternPreview from './components/PatternPreview.jsx';
 import ColorLegend from './components/ColorLegend.jsx';
 import Tips from './components/Tips.jsx';
 import AdBanner from './components/AdBanner.jsx';
+import CookieConsent from './components/CookieConsent.jsx';
 
 // Code-split secondary pages — only loaded when navigated to
 const HowItWorks = lazy(() => import('./pages/HowItWorks.jsx'));
 const FAQ = lazy(() => import('./pages/FAQ.jsx'));
 const About = lazy(() => import('./pages/About.jsx'));
+const Privacy = lazy(() => import('./pages/Privacy.jsx'));
+const Terms = lazy(() => import('./pages/Terms.jsx'));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -48,20 +51,29 @@ export default function App() {
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/about" element={<About />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </div>
 
       <footer className="border-t border-gray-100 mt-16 py-6 text-center text-xs text-gray-500 space-y-2">
-        <nav aria-label="Footer navigation" className="flex justify-center gap-4 sm:hidden mb-2">
+        <nav aria-label="Footer navigation" className="flex flex-wrap justify-center gap-x-4 gap-y-1 sm:hidden mb-2">
           <Link to="/how-it-works" className="hover:text-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">How It Works</Link>
           <Link to="/faq" className="hover:text-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">FAQ</Link>
           <Link to="/about" className="hover:text-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">About</Link>
+          <Link to="/privacy" className="hover:text-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">Privacy</Link>
+          <Link to="/terms" className="hover:text-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">Terms</Link>
+        </nav>
+        <nav aria-label="Footer legal navigation" className="hidden sm:flex justify-center gap-4 mb-1">
+          <Link to="/privacy" className="hover:text-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">Privacy Policy</Link>
+          <Link to="/terms" className="hover:text-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">Terms of Service</Link>
         </nav>
         <p>Knit It — Image to Knitting Pattern Generator</p>
         <p>We collect anonymous usage statistics to improve Knit It. No images or personal information are stored.</p>
       </footer>
+      <CookieConsent />
     </div>
   );
 }
@@ -88,9 +100,17 @@ function Header() {
     <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+          <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center overflow-hidden">
+            <svg viewBox="0 0 32 32" className="w-8 h-8" aria-hidden="true">
+              <line x1="9" y1="27" x2="24" y2="5" stroke="#f9a8d4" strokeWidth="2.5" strokeLinecap="round"/>
+              <circle cx="24" cy="5" r="2.5" fill="#f9a8d4"/>
+              <line x1="23" y1="27" x2="8" y2="5" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+              <circle cx="8" cy="5" r="2.5" fill="white"/>
+              <circle cx="16" cy="17" r="8.5" fill="white"/>
+              <path d="M7.5 14.5 Q16 12 24.5 14.5" stroke="#d92668" strokeWidth="1.2" fill="none"/>
+              <path d="M7.5 19.5 Q16 22 24.5 19.5" stroke="#d92668" strokeWidth="1.2" fill="none"/>
+              <path d="M12 8.5 Q16 17 12 25.5" stroke="#d92668" strokeWidth="1.2" fill="none"/>
+              <path d="M20 8.5 Q16 17 20 25.5" stroke="#d92668" strokeWidth="1.2" fill="none"/>
             </svg>
           </div>
           <span className="text-xl font-display font-bold text-gray-900">

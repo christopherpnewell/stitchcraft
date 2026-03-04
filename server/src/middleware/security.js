@@ -87,6 +87,21 @@ export function permissionsPolicy() {
 }
 
 /**
+ * Global rate limiter — covers all routes including static files.
+ * Generous limit to block only abusive clients.
+ */
+export function globalRateLimiter() {
+  return rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 200,
+    message: { error: 'Too many requests. Please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => req.ip || 'unknown',
+  });
+}
+
+/**
  * Rate limiter for upload/processing endpoints
  */
 export function uploadRateLimiter() {

@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
 
 import { config } from './services/config.js';
-import { helmetMiddleware, csrfProtection, permissionsPolicy } from './middleware/security.js';
+import { helmetMiddleware, csrfProtection, permissionsPolicy, globalRateLimiter } from './middleware/security.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import patternRoutes, { stopCleanup } from './routes/pattern.js';
 import adminRoutes from './routes/admin.js';
@@ -24,6 +24,19 @@ app.set('trust proxy', 1);
 await fs.mkdir(config.uploadDir, { recursive: true });
 await fs.mkdir(config.tmpDir, { recursive: true });
 
+// HTTP → HTTPS redirect in production (behind a proxy that sets X-Forwarded-Proto)
+if (!config.isDev) {
+  app.use((req, res, next) => {
+    if (req.get('x-forwarded-proto') && req.get('x-forwarded-proto') !== 'https') {
+      return res.redirect(301, `https://${req.get('host')}${req.originalUrl}`);
+    }
+    next();
+  });
+}
+
+// Global rate limiter — generous cap covering all routes including static files
+app.use(globalRateLimiter());
+
 // Security middleware
 app.use(helmetMiddleware());
 app.use(permissionsPolicy());
@@ -34,6 +47,11 @@ app.use(express.json({ limit: '1mb' }));
 
 // CSRF protection
 app.use(csrfProtection());
+
+// Health check — used by Docker/orchestration and uptime monitoring
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime() });
+});
 
 // ads.txt for AdSense verification
 if (config.enableAds && config.adsensePublisherId) {
@@ -57,7 +75,7 @@ Sitemap: ${config.siteUrl}/sitemap.xml
 const SITEMAP_LASTMOD = new Date().toISOString().split('T')[0];
 app.get('/sitemap.xml', (req, res) => {
   const lastmod = SITEMAP_LASTMOD;
-  const urls = ['/', '/how-it-works', '/faq', '/about'];
+  const urls = ['/', '/how-it-works', '/faq', '/about', '/privacy', '/terms'];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map(u => `  <url>
@@ -103,13 +121,21 @@ try {
       title: 'About — Knit It',
       description: 'About Knit It: a free web tool that converts any image into a colorwork knitting pattern with aspect ratio correction, smart color quantization, and professional PDF output.',
     },
+    '/privacy': {
+      title: 'Privacy Policy — Knit It',
+      description: 'Privacy policy for Knit It: what data we collect, how we use it, and information about Google AdSense cookies, Amazon affiliate links, and image handling.',
+    },
+    '/terms': {
+      title: 'Terms of Service — Knit It',
+      description: 'Terms of service for Knit It: acceptable use, intellectual property, disclaimer of warranties, and limitation of liability.',
+    },
   };
 
   // Known SPA routes — anything else gets 404 status
   const knownRoutes = new Set(Object.keys(routeMeta));
 
   // SPA fallback — inject route-specific meta and ad config
-  app.get('*', (req, res) => {
+  app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/admin')) return next();
 
     // Normalize path: strip trailing slashes
@@ -154,13 +180,12 @@ try {
       `$1${meta.description}$2`
     );
 
-    // Inject AdSense script and config if ads are enabled
+    // Inject publisher meta and ad slot config — client loads adsbygoogle.js after cookie consent
     if (config.enableAds && config.adsensePublisherId) {
-      const adScript = `
+      const adConfig = `
     <meta name="adsense-publisher" content="${config.adsensePublisherId}">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${config.adsensePublisherId}" crossorigin="anonymous"></script>
     <script>window.__AD_SLOT_TOP__="${config.adSlotTop}";window.__AD_SLOT_SIDEBAR__="${config.adSlotSidebar}";</script>`;
-      html = html.replace('</head>', `${adScript}\n  </head>`);
+      html = html.replace('</head>', `${adConfig}\n  </head>`);
     }
 
     res.setHeader('Content-Type', 'text/html');

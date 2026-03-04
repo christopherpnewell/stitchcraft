@@ -20,8 +20,8 @@ COPY server/src/ ./server/src/
 # Copy built client
 COPY --from=client-build /app/client/dist ./client/dist
 
-# Create upload and tmp directories (outside webroot)
-RUN mkdir -p /app/server/uploads /app/server/tmp
+# Create upload, tmp, and data directories (outside webroot)
+RUN mkdir -p /app/server/uploads /app/server/tmp /app/data
 
 # Non-root user for security
 RUN addgroup -g 1001 -S knitit && \
@@ -32,5 +32,8 @@ USER knitit
 ENV NODE_ENV=production
 ENV PORT=3000
 EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -q --spider http://localhost:3000/health || exit 1
 
 CMD ["node", "server/src/index.js"]

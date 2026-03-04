@@ -275,7 +275,7 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
  */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-router.get('/download/:id', async (req, res, next) => {
+router.get('/download/:id', uploadRateLimiter(), async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -288,7 +288,11 @@ router.get('/download/:id', async (req, res, next) => {
       return res.status(400).json({ error: 'Pattern not yet generated. Generate a preview first.' });
     }
 
-    const pdfBuffer = await generatePdf(session.pattern);
+    // Use cached PDF buffer to avoid regenerating on every download
+    if (!session.pdfCache) {
+      session.pdfCache = await generatePdf(session.pattern);
+    }
+    const pdfBuffer = session.pdfCache;
 
     trackEvent('download', { projectType: session.pattern.projectType });
     res.setHeader('Content-Type', 'application/pdf');

@@ -10,6 +10,9 @@ services:
       - RATE_LIMIT_WINDOW_MS=900000
       - RATE_LIMIT_MAX_REQUESTS=30
       - MAX_FILE_SIZE_MB=10
+      - ANALYTICS_DB_PATH=/app/data/analytics.db
+    volumes:
+      - ./data:/app/data
     restart: unless-stopped
     # Resource limits to prevent abuse
     deploy:
@@ -17,3 +20,6 @@ services:
         limits:
           cpus: "2.0"
           memory: 1G
+
+volumes:
+  data:
