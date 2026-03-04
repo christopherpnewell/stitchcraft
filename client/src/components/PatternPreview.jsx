@@ -190,7 +190,7 @@ export default function PatternPreview({ pattern }) {
           >
             -
           </button>
-          <span className="text-sm text-gray-600 w-12 text-center" aria-live="polite" aria-atomic="true">{Math.round(zoom * 100)}%</span>
+          <span className="text-sm text-gray-600 w-16 text-center" aria-live="polite" aria-atomic="true">Scale {Math.round(zoom * 100)}%</span>
           <button
             onClick={() => setZoom(z => Math.min(4, z + 0.25))}
             aria-label="Zoom in"
