@@ -77,10 +77,13 @@ export async function generatePattern(imagePath, config) {
   // Color quantize
   const { palette, assignments, counts } = kMeansQuantize(pixels, numColors);
 
-  // Build the grid (2D array, row 0 = bottom of chart = first row knitted)
-  // We store top-to-bottom in the array, but the PDF will render bottom-to-top
+  // Build the grid (2D array)
+  // grid[0] = bottom of image (row 1 in knitting terms, first row knitted)
+  // grid[heightRows-1] = top of image (last row knitted)
+  // Image pixels come top-to-bottom from Sharp, so we reverse row order
+  // so that when the chart renders bottom-to-top, the image appears right-side-up.
   const grid = [];
-  for (let row = 0; row < heightRows; row++) {
+  for (let row = heightRows - 1; row >= 0; row--) {
     const gridRow = [];
     for (let col = 0; col < widthStitches; col++) {
       gridRow.push(assignments[row * widthStitches + col]);

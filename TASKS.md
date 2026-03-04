@@ -4,7 +4,7 @@
 - [x] Rename all references from "StitchCraft" to "Knit It" across codebase
 
 ## Bug Fixes
-- [ ] 1. Fix inverted image orientation in grid pipeline
+- [x] 1. Fix inverted image orientation in grid pipeline
 - [ ] 2. Identify and fix all non-functional buttons/UI elements
 - [ ] 3. Fix duplicate yarn suggestions — improve color-distance matching
 
