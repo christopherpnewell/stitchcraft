@@ -43,6 +43,11 @@ export const config = {
   siteUrl: (process.env.SITE_URL || 'https://knitit.app').replace(/\/+$/, ''),
 };
 
+// Fail startup in production if CSRF secret is the insecure default
+if (!config.isDev && config.csrfSecret === 'dev-secret-change-in-production') {
+  throw new Error('CSRF_SECRET must be set to a unique random value in production. Aborting.');
+}
+
 export function getMaxFileSize() {
   return config.maxFileSizeMB * 1024 * 1024;
 }

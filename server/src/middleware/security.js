@@ -103,14 +103,22 @@ export function uploadRateLimiter() {
 }
 
 /**
- * Double-submit CSRF protection via cookie + header matching.
+ * HMAC-sign a CSRF token with the server-side secret.
+ */
+function signCsrfToken(token) {
+  return crypto.createHmac('sha256', config.csrfSecret).update(token).digest('hex');
+}
+
+/**
+ * Double-submit CSRF protection via HMAC-signed cookie + header matching.
  */
 export function csrfProtection() {
   return (req, res, next) => {
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
       if (!req.cookies?.csrfToken) {
         const token = crypto.randomBytes(32).toString('hex');
-        res.cookie('csrfToken', token, {
+        const signed = token + '.' + signCsrfToken(token);
+        res.cookie('csrfToken', signed, {
           httpOnly: false,
           sameSite: 'strict',
           secure: !config.isDev,
@@ -123,7 +131,26 @@ export function csrfProtection() {
     const cookieToken = req.cookies?.csrfToken;
     const headerToken = req.headers['x-csrf-token'];
 
-    if (!cookieToken || !headerToken || cookieToken !== headerToken) {
+    if (!cookieToken || !headerToken) {
+      return res.status(403).json({ error: 'Invalid CSRF token' });
+    }
+
+    // Verify HMAC signature on cookie token
+    const [cookieValue, cookieSig] = cookieToken.split('.');
+    if (!cookieValue || !cookieSig) {
+      return res.status(403).json({ error: 'Invalid CSRF token' });
+    }
+    const expectedSig = signCsrfToken(cookieValue);
+    const sigBuffer = Buffer.from(cookieSig, 'hex');
+    const expectedBuffer = Buffer.from(expectedSig, 'hex');
+    if (sigBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(sigBuffer, expectedBuffer)) {
+      return res.status(403).json({ error: 'Invalid CSRF token' });
+    }
+
+    // Timing-safe comparison of cookie and header tokens
+    const cookieBuf = Buffer.from(cookieToken);
+    const headerBuf = Buffer.from(headerToken);
+    if (cookieBuf.length !== headerBuf.length || !crypto.timingSafeEqual(cookieBuf, headerBuf)) {
       return res.status(403).json({ error: 'Invalid CSRF token' });
     }
 
