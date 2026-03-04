@@ -64,7 +64,7 @@ export default function FAQ() {
   };
 
   return (
-    <article className="max-w-3xl mx-auto py-12 px-4 sm:px-6">
+    <main id="main-content" className="max-w-3xl mx-auto py-12 px-4 sm:px-6">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
@@ -80,20 +80,23 @@ export default function FAQ() {
       <div className="space-y-6">
         {FAQS.map((faq) => (
           <div key={faq.q} className="border-b border-gray-100 pb-6 last:border-0">
-            <h2 className="text-base font-semibold text-gray-800 mb-2">{faq.q}</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">{faq.q}</h2>
             <p className="text-sm text-gray-600 leading-relaxed">{faq.a}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-10 text-center">
+      <div className="mt-10 text-center space-y-3">
         <Link
           to="/"
           className="inline-block px-6 py-3 bg-brand-600 text-white font-semibold rounded-xl hover:bg-brand-700 transition-colors"
         >
           Try It Now
         </Link>
+        <p className="text-sm text-gray-500">
+          Learn more: <Link to="/how-it-works" className="text-brand-600 hover:text-brand-700">How It Works</Link> | <Link to="/about" className="text-brand-600 hover:text-brand-700">About Knit It</Link>
+        </p>
       </div>
-    </article>
+    </main>
   );
 }

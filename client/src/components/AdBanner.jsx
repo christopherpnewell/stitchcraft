@@ -42,7 +42,7 @@ export default function AdBanner({ slot, format = 'auto', className = '' }) {
   }
 
   return (
-    <div className={`ad-container min-h-[90px] flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden ${className}`}>
+    <div role="complementary" aria-label="Advertisement" className={`ad-container min-h-[90px] flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden ${className}`}>
       <ins
         ref={adRef}
         className="adsbygoogle"

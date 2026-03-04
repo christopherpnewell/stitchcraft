@@ -10,7 +10,7 @@ import fs from 'fs/promises';
 import { config } from './services/config.js';
 import { helmetMiddleware, csrfProtection, permissionsPolicy } from './middleware/security.js';
 import { errorHandler } from './middleware/errorHandler.js';
-import patternRoutes from './routes/pattern.js';
+import patternRoutes, { stopCleanup } from './routes/pattern.js';
 import adminRoutes from './routes/admin.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -52,9 +52,10 @@ Sitemap: ${config.siteUrl}/sitemap.xml
 `);
 });
 
-// sitemap.xml — with lastmod dates (the only tag Google uses)
+// sitemap.xml — with static lastmod (changes only on deploy)
+const SITEMAP_LASTMOD = new Date().toISOString().split('T')[0];
 app.get('/sitemap.xml', (req, res) => {
-  const lastmod = new Date().toISOString().split('T')[0];
+  const lastmod = SITEMAP_LASTMOD;
   const urls = ['/', '/how-it-works', '/faq', '/about'];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -78,7 +79,7 @@ app.use('/admin', adminRoutes);
 const clientDist = path.resolve(__dirname, '..', '..', 'client', 'dist');
 try {
   await fs.access(clientDist);
-  app.use(express.static(clientDist));
+  app.use(express.static(clientDist, { maxAge: '7d', immutable: true }));
 
   // Cache index.html at startup — avoid re-reading from disk on every request
   const indexHtmlTemplate = await fs.readFile(path.join(clientDist, 'index.html'), 'utf8');
@@ -165,6 +166,7 @@ try {
     }
 
     res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 'no-cache');
     res.status(isKnown ? 200 : 404).send(html);
   });
 } catch {
@@ -185,6 +187,8 @@ const server = app.listen(config.port, () => {
 // Graceful shutdown
 function shutdown(signal) {
   console.log(`\n${signal} received. Shutting down gracefully...`);
+  // Stop pattern store cleanup interval
+  stopCleanup();
   server.close(() => {
     console.log('HTTP server closed.');
     process.exit(0);

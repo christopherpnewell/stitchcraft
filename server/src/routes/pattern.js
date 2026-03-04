@@ -49,7 +49,7 @@ function releaseSlot() {
 }
 
 // Clean up old patterns every 5 minutes
-setInterval(() => {
+const cleanupInterval = setInterval(() => {
   const now = Date.now();
   const TTL = 30 * 60 * 1000;
   for (const [id, entry] of patternStore) {
@@ -60,6 +60,11 @@ setInterval(() => {
     }
   }
 }, 5 * 60 * 1000);
+
+/** Stop the cleanup interval for graceful shutdown. */
+export function stopCleanup() {
+  clearInterval(cleanupInterval);
+}
 
 /**
  * POST /api/upload
@@ -276,6 +281,11 @@ router.get('/download/:id', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+// Dedicated CSRF token endpoint — safe GET that sets the cookie
+router.get('/csrf', (req, res) => {
+  res.json({ ok: true });
 });
 
 export default router;

@@ -74,8 +74,8 @@ export function usePattern() {
       const formData = new FormData();
       formData.append('image', file);
 
-      // Get CSRF cookie
-      await fetch('/api/download/noop', { credentials: 'same-origin' }).catch(() => {});
+      // Ensure CSRF cookie is set via a safe GET request
+      await fetch('/api/csrf', { credentials: 'same-origin' }).catch(() => {});
 
       const res = await fetch('/api/upload', {
         method: 'POST',

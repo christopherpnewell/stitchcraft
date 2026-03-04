@@ -219,6 +219,24 @@ const YARN_DATABASE = [
   { rgb: [210, 170, 120], name: 'Camel', suggestion: 'Knit Picks Palette — Suede Heather', weight: 'fingering' },
   { rgb: [120, 70, 40], name: 'Chestnut', suggestion: 'Knit Picks Palette — Suede', weight: 'fingering' },
   { rgb: [160, 120, 90], name: 'Taupe', suggestion: 'Caron Simply Soft — Taupe', weight: 'worsted' },
+  // Bulky weight
+  { rgb: [0, 0, 0], name: 'Black', suggestion: 'Lion Brand Wool-Ease Thick & Quick — Black', weight: 'bulky' },
+  { rgb: [255, 255, 255], name: 'White', suggestion: 'Lion Brand Wool-Ease Thick & Quick — Fisherman', weight: 'bulky' },
+  { rgb: [128, 128, 128], name: 'Gray', suggestion: 'Lion Brand Wool-Ease Thick & Quick — Oxford Grey', weight: 'bulky' },
+  { rgb: [180, 20, 20], name: 'Cranberry', suggestion: 'Lion Brand Wool-Ease Thick & Quick — Cranberry', weight: 'bulky' },
+  { rgb: [20, 30, 80], name: 'Navy', suggestion: 'Lion Brand Wool-Ease Thick & Quick — Navy', weight: 'bulky' },
+  { rgb: [30, 120, 50], name: 'Pine', suggestion: 'Lion Brand Wool-Ease Thick & Quick — Pine', weight: 'bulky' },
+  { rgb: [140, 90, 50], name: 'Barley', suggestion: 'Lion Brand Wool-Ease Thick & Quick — Barley', weight: 'bulky' },
+  { rgb: [100, 40, 150], name: 'Eggplant', suggestion: 'Lion Brand Wool-Ease Thick & Quick — Eggplant', weight: 'bulky' },
+  // DK weight
+  { rgb: [0, 0, 0], name: 'Black', suggestion: 'Cascade 220 Superwash — Black', weight: 'dk' },
+  { rgb: [255, 255, 255], name: 'White', suggestion: 'Cascade 220 Superwash — White', weight: 'dk' },
+  { rgb: [128, 128, 128], name: 'Silver Grey', suggestion: 'Cascade 220 Superwash — Silver Grey', weight: 'dk' },
+  { rgb: [180, 20, 20], name: 'Christmas Red', suggestion: 'Cascade 220 Superwash — Christmas Red', weight: 'dk' },
+  { rgb: [30, 60, 160], name: 'Sapphire', suggestion: 'Cascade 220 Superwash — Sapphire', weight: 'dk' },
+  { rgb: [30, 120, 50], name: 'Highland Green', suggestion: 'Cascade 220 Superwash — Highland Green', weight: 'dk' },
+  { rgb: [220, 180, 50], name: 'Gold', suggestion: 'Cascade 220 Superwash — Gold', weight: 'dk' },
+  { rgb: [100, 40, 150], name: 'Heather', suggestion: 'Cascade 220 Superwash — Heather', weight: 'dk' },
   // Skin tones
   { rgb: [240, 210, 180], name: 'Light Peach', suggestion: 'Red Heart Super Saver — Light Peach', weight: 'worsted' },
   { rgb: [200, 160, 120], name: 'Warm Beige', suggestion: 'Caron Simply Soft — Bone', weight: 'worsted' },
@@ -229,9 +247,11 @@ const YARN_DATABASE = [
  * Map stitch gauge to a yarn weight category for filtering yarn suggestions.
  */
 function gaugeToWeight(stitchGauge) {
-  if (!stitchGauge || stitchGauge <= 17) return 'bulky';
-  if (stitchGauge <= 24) return 'worsted';  // worsted + DK
-  return 'fingering';                        // sport + fingering
+  if (!stitchGauge || stitchGauge <= 14) return 'bulky';
+  if (stitchGauge <= 20) return 'worsted';
+  if (stitchGauge <= 24) return 'dk';
+  if (stitchGauge <= 26) return 'fingering'; // sport-weight uses fingering yarn entries
+  return 'fingering';
 }
 
 /**

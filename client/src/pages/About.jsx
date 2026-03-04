@@ -7,7 +7,7 @@ export default function About() {
   }, []);
 
   return (
-    <article className="max-w-3xl mx-auto py-12 px-4 sm:px-6">
+    <main id="main-content" className="max-w-3xl mx-auto py-12 px-4 sm:px-6">
       <h1 className="text-3xl sm:text-4xl font-display font-bold text-gray-900 mb-6">
         About <span className="text-brand-600">Knit It</span>
       </h1>
@@ -57,14 +57,17 @@ export default function About() {
         </p>
       </div>
 
-      <div className="mt-10 text-center">
+      <div className="mt-10 text-center space-y-3">
         <Link
           to="/"
           className="inline-block px-6 py-3 bg-brand-600 text-white font-semibold rounded-xl hover:bg-brand-700 transition-colors"
         >
           Get Started
         </Link>
+        <p className="text-sm text-gray-500">
+          Learn more: <Link to="/how-it-works" className="text-brand-600 hover:text-brand-700">How It Works</Link> | <Link to="/faq" className="text-brand-600 hover:text-brand-700">FAQ</Link>
+        </p>
       </div>
-    </article>
+    </main>
   );
 }

@@ -5,21 +5,21 @@ export default function ColorLegend({ pattern }) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-semibold text-gray-800">Color Legend</h3>
+      <h2 className="text-lg font-semibold text-gray-800">Color Legend</h2>
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
-              <th className="px-3 py-2">Color</th>
-              <th className="px-3 py-2">Label</th>
-              <th className="px-3 py-2">Usage</th>
-              <th className="px-3 py-2 hidden sm:table-cell">~Yards</th>
-              <th className="px-3 py-2 hidden md:table-cell">Suggested Yarn</th>
+              <th scope="col" className="px-3 py-2">Color</th>
+              <th scope="col" className="px-3 py-2">Label</th>
+              <th scope="col" className="px-3 py-2">Usage</th>
+              <th scope="col" className="px-3 py-2 hidden sm:table-cell">~Yards</th>
+              <th scope="col" className="px-3 py-2 hidden md:table-cell">Suggested Yarn</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {pattern.palette.map((color, i) => (
-              <tr key={color.hex} className="hover:bg-gray-50 transition-colors">
+              <tr key={`${color.label}-${color.hex}`} className="hover:bg-gray-50 transition-colors">
                 <td className="px-3 py-2">
                   <div className="flex items-center gap-2">
                     <div

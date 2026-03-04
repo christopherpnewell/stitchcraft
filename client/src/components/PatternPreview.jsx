@@ -181,7 +181,7 @@ export default function PatternPreview({ pattern }) {
       {isSweater && <SweaterSilhouette projectType={pattern.projectType} />}
 
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-800">Pattern Preview</h3>
+        <h2 className="text-lg font-semibold text-gray-800">Pattern Preview</h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setZoom(z => Math.max(0.25, z - 0.25))}
@@ -190,7 +190,7 @@ export default function PatternPreview({ pattern }) {
           >
             -
           </button>
-          <span className="text-sm text-gray-500 w-12 text-center">{Math.round(zoom * 100)}%</span>
+          <span className="text-sm text-gray-600 w-12 text-center" aria-live="polite" aria-atomic="true">{Math.round(zoom * 100)}%</span>
           <button
             onClick={() => setZoom(z => Math.min(4, z + 0.25))}
             aria-label="Zoom in"
@@ -264,7 +264,7 @@ function SweaterSilhouette({ projectType }) {
       <p className="text-xs text-gray-500 mb-2 font-medium">
         Chart Placement — {isBack ? 'Back Panel' : isLeft ? 'Left Chest' : 'Right Chest'}
       </p>
-      <svg viewBox="0 0 200 160" className="w-full max-w-[240px] mx-auto" fill="none">
+      <svg viewBox="0 0 200 160" className="w-full max-w-[240px] mx-auto" fill="none" role="img" aria-label={`Sweater silhouette showing chart placement on the ${isBack ? 'back panel' : isLeft ? 'left chest' : 'right chest'}`}>
         {/* Sweater outline */}
         <path
           d="M50 20 L30 10 L10 45 L35 55 L35 140 L165 140 L165 55 L190 45 L170 10 L150 20 C140 30 130 35 100 35 C70 35 60 30 50 20Z"

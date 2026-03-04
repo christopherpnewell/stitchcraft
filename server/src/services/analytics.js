@@ -8,7 +8,12 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.resolve(__dirname, '..', '..', 'analytics.db');
+const DB_PATH = process.env.ANALYTICS_DB_PATH
+  ? path.resolve(process.env.ANALYTICS_DB_PATH)
+  : path.resolve(__dirname, '..', '..', 'analytics.db');
+
+/** Maximum age for analytics events (90 days). */
+const RETENTION_DAYS = 90;
 
 let db;
 
@@ -25,6 +30,11 @@ function getDb() {
       CREATE INDEX IF NOT EXISTS idx_events_type ON events(event_type);
       CREATE INDEX IF NOT EXISTS idx_events_date ON events(created_at);
     `);
+    // Purge old events beyond retention period
+    try {
+      const cutoff = new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+      db.prepare('DELETE FROM events WHERE created_at < ?').run(cutoff);
+    } catch { /* best-effort */ }
   }
   return db;
 }
@@ -132,6 +142,16 @@ export function getAnalyticsSummary(days = 30) {
       dailyGenerations,
     };
   } catch (err) {
-    return { error: err.message };
+    console.error('Analytics query error:', err);
+    return {
+      error: 'Analytics query failed',
+      period: `Last ${days} days`,
+      totals: { uploads: 0, generations: 0, downloads: 0, affiliateClicks: 0, downloadRate: 0 },
+      projectTypes: [],
+      widthDistribution: [],
+      colorDistribution: [],
+      featureUsage: { backgroundRemoval: 0, enhanceDetail: 0, smoothStitches: 0 },
+      dailyGenerations: [],
+    };
   }
 }

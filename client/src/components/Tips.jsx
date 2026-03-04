@@ -31,7 +31,7 @@ export default function Tips() {
       <p className="text-sm text-amber-800 flex-1 leading-snug">{tip.text}</p>
       <button
         onClick={() => setDismissed(true)}
-        className="text-amber-400 hover:text-amber-600 p-1 transition-colors flex-shrink-0"
+        className="text-amber-400 hover:text-amber-600 p-2.5 -m-1.5 transition-colors flex-shrink-0 rounded-lg"
         title="Dismiss"
         aria-label="Dismiss tip"
       >

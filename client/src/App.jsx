@@ -43,10 +43,10 @@ export default function App() {
               Knit<span className="text-brand-600"> It</span>
             </span>
           </Link>
-          <nav aria-label="Main navigation" className="flex items-center gap-4 text-sm">
-            <Link to="/how-it-works" className="text-gray-500 hover:text-gray-700 transition-colors hidden sm:inline">How It Works</Link>
-            <Link to="/faq" className="text-gray-500 hover:text-gray-700 transition-colors hidden sm:inline">FAQ</Link>
-            <Link to="/about" className="text-gray-500 hover:text-gray-700 transition-colors hidden sm:inline">About</Link>
+          <nav aria-label="Main navigation" className="hidden sm:flex items-center gap-4 text-sm">
+            <Link to="/how-it-works" className="text-gray-500 hover:text-gray-700 transition-colors">How It Works</Link>
+            <Link to="/faq" className="text-gray-500 hover:text-gray-700 transition-colors">FAQ</Link>
+            <Link to="/about" className="text-gray-500 hover:text-gray-700 transition-colors">About</Link>
           </nav>
         </div>
       </header>
@@ -60,7 +60,7 @@ export default function App() {
 
       <ScrollToTop />
       <div className="flex-1">
-        <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-400">Loading...</div>}>
+        <Suspense fallback={<div role="status" aria-live="polite" className="flex items-center justify-center py-20 text-gray-600">Loading...</div>}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
@@ -98,6 +98,11 @@ function HomePage() {
   } = usePattern();
 
   const settingsRef = useRef(null);
+
+  // Reset document.title when on home page
+  useEffect(() => {
+    document.title = 'Knit It — Image to Knitting Pattern Generator';
+  }, []);
 
   // Focus the settings panel after a successful upload
   useEffect(() => {
@@ -144,7 +149,7 @@ function HomePage() {
         <div className="flex justify-end mb-4">
           <button
             onClick={reset}
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-sm text-gray-500 hover:text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 rounded"
           >
             Start Over
           </button>
@@ -226,10 +231,12 @@ function HomePage() {
               <a
                 href={downloadUrl}
                 download
+                aria-label="Download PDF knitting pattern"
                 className="
                   block w-full py-3 rounded-xl text-center font-semibold text-base
                   bg-gray-900 text-white hover:bg-gray-800 transition-colors shadow-sm
                   hover:shadow-md active:scale-[0.98]
+                  focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
                 "
               >
                 Download PDF Pattern
@@ -325,8 +332,8 @@ function NotFound() {
 function Feature({ title, desc }) {
   return (
     <div className="text-center p-5">
-      <h3 className="font-semibold text-gray-800 mb-1">{title}</h3>
-      <p className="text-sm text-gray-500">{desc}</p>
+      <h2 className="text-base font-semibold text-gray-800 mb-1">{title}</h2>
+      <p className="text-sm text-gray-600">{desc}</p>
     </div>
   );
 }

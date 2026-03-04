@@ -97,7 +97,8 @@ export function uploadRateLimiter() {
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: (req) => {
-      return req.ip || req.headers['x-forwarded-for'] || 'unknown';
+      // trust proxy is set, so req.ip already resolves X-Forwarded-For correctly
+      return req.ip || 'unknown';
     },
   });
 }
@@ -115,16 +116,15 @@ function signCsrfToken(token) {
 export function csrfProtection() {
   return (req, res, next) => {
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
-      if (!req.cookies?.csrfToken) {
-        const token = crypto.randomBytes(32).toString('hex');
-        const signed = token + '.' + signCsrfToken(token);
-        res.cookie('csrfToken', signed, {
-          httpOnly: false,
-          sameSite: 'strict',
-          secure: !config.isDev,
-          maxAge: 3600000,
-        });
-      }
+      // Issue a fresh CSRF token on every GET (rotation)
+      const token = crypto.randomBytes(32).toString('hex');
+      const signed = token + '.' + signCsrfToken(token);
+      res.cookie('csrfToken', signed, {
+        httpOnly: false,
+        sameSite: 'strict',
+        secure: !config.isDev,
+        maxAge: 3600000,
+      });
       return next();
     }
 

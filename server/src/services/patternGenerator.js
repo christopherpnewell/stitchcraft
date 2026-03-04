@@ -137,9 +137,10 @@ export async function generatePattern(imagePath, config) {
   const colorPercentages = finalCounts.map(c => Math.round((c / totalStitches) * 1000) / 10);
 
   // Yardage estimate scaled by yarn weight (via stitch gauge)
-  // Base: ~0.022 yd/stitch for worsted (18-20 st/4in) + 15% safety buffer
+  // Values calibrated for stranded colorwork (two yarns carried across every row)
+  // with a 20% safety buffer for tails, swatching, and color management
   const yardsPerStitch = getYardsPerStitch(stitchGauge);
-  const safetyMultiplier = 1.15;
+  const safetyMultiplier = 1.20;
   const colorYardages = finalCounts.map(c => Math.ceil(c * yardsPerStitch * safetyMultiplier));
 
   // Float length analysis — detect max consecutive stitches of one color per row
@@ -166,11 +167,12 @@ export async function generatePattern(imagePath, config) {
  * Heavier yarns use more yardage per stitch.
  */
 function getYardsPerStitch(stitchGauge) {
-  if (stitchGauge <= 14) return 0.032;      // Bulky
-  if (stitchGauge <= 20) return 0.022;      // Worsted
-  if (stitchGauge <= 24) return 0.018;      // DK
-  if (stitchGauge <= 26) return 0.015;      // Sport
-  return 0.012;                              // Fingering
+  // Values ~15% higher than plain stockinette to account for stranded colorwork
+  if (stitchGauge <= 14) return 0.037;      // Bulky
+  if (stitchGauge <= 20) return 0.025;      // Worsted
+  if (stitchGauge <= 24) return 0.021;      // DK
+  if (stitchGauge <= 26) return 0.017;      // Sport
+  return 0.014;                              // Fingering
 }
 
 /**

@@ -3,9 +3,9 @@ import PremiumBadge from './PremiumBadge.jsx';
 
 const GAUGE_PRESETS = [
   { label: 'Bulky (3 st/in)', stitchGauge: 12, rowGauge: 17 },
-  { label: 'Worsted (4.5 st/in)', stitchGauge: 18, rowGauge: 26 },
+  { label: 'Worsted (4.5 st/in)', stitchGauge: 18, rowGauge: 24 },
   { label: 'DK (5.5 st/in)', stitchGauge: 22, rowGauge: 30 },
-  { label: 'Sport (6 st/in)', stitchGauge: 24, rowGauge: 34 },
+  { label: 'Sport (6 st/in)', stitchGauge: 24, rowGauge: 32 },
   { label: 'Fingering (7 st/in)', stitchGauge: 28, rowGauge: 40 },
   { label: 'Custom', stitchGauge: null, rowGauge: null },
 ];
@@ -55,6 +55,21 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
   const isCustomGauge = GAUGE_PRESETS[gaugePreset].stitchGauge === null;
   const isGenerating = status === 'generating';
 
+  const handleWidthKeyDown = (e, index) => {
+    let nextIndex;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      nextIndex = (index + 1) % WIDTH_OPTIONS.length;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      nextIndex = (index - 1 + WIDTH_OPTIONS.length) % WIDTH_OPTIONS.length;
+    } else {
+      return;
+    }
+    setWidthStitches(WIDTH_OPTIONS[nextIndex]);
+    e.currentTarget.parentElement.children[nextIndex]?.focus();
+  };
+
   const handleGenerate = () => {
     onGenerate({
       widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail, projectType,
@@ -67,7 +82,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
 
   return (
     <div className="space-y-5">
-      <h3 className="text-lg font-semibold text-gray-800">Pattern Settings</h3>
+      <h2 className="text-lg font-semibold text-gray-800">Pattern Settings</h2>
 
       {/* Grid Width */}
       <div>
@@ -75,21 +90,24 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
           Width (stitches)
         </span>
         <div role="radiogroup" aria-labelledby="width-label" className="flex flex-wrap gap-2">
-          {WIDTH_OPTIONS.map(w => (
+          {WIDTH_OPTIONS.map((w, idx) => (
             <button
               key={w}
               role="radio"
               aria-checked={widthStitches === w}
+              tabIndex={widthStitches === w ? 0 : -1}
               onClick={() => setWidthStitches(w)}
+              onKeyDown={(e) => handleWidthKeyDown(e, idx)}
               className={`
-                px-3 py-1.5 rounded-lg text-sm font-medium transition-colors relative
+                px-3 py-1.5 min-h-[44px] rounded-lg text-sm font-medium transition-colors relative
+                focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1
                 ${widthStitches === w
                   ? 'bg-brand-600 text-white shadow-sm'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }
               `}
             >
-              {w}{w > 100 && <span className="text-[8px] text-amber-500 ml-0.5">*</span>}
+              {w}{w > 100 && <span className="text-[8px] text-amber-500 ml-0.5" aria-hidden="true">*</span>}
             </button>
           ))}
         </div>
@@ -112,6 +130,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
           min={2}
           max={12}
           value={numColors}
+          aria-valuetext={`${numColors} colors`}
           onChange={e => setNumColors(parseInt(e.target.value, 10))}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-600"
         />
@@ -145,15 +164,15 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
       {isCustomGauge && (
         <div className="grid grid-cols-2 gap-3 p-3 bg-gray-50 rounded-lg">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Stitches per 4"</label>
-            <input type="number" min={5} max={60} value={stitchGauge}
+            <label htmlFor="customStitchGauge" className="block text-xs font-medium text-gray-600 mb-1">Stitches per 4&quot;</label>
+            <input id="customStitchGauge" type="number" min={5} max={60} value={stitchGauge}
               onChange={e => setStitchGauge(parseInt(e.target.value, 10) || 18)}
               className="w-full px-2 py-1.5 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Rows per 4"</label>
-            <input type="number" min={5} max={60} value={rowGauge}
+            <label htmlFor="customRowGauge" className="block text-xs font-medium text-gray-600 mb-1">Rows per 4&quot;</label>
+            <input id="customRowGauge" type="number" min={5} max={60} value={rowGauge}
               onChange={e => setRowGauge(parseInt(e.target.value, 10) || 24)}
               className="w-full px-2 py-1.5 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
