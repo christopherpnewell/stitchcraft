@@ -333,15 +333,35 @@ function getChartLayout(pattern, useLandscape = false) {
   if (cellWidth < minCellSize) cellWidth = minCellSize;
   cellHeight = cellWidth / stitchAR;
 
-  const colsPerPage = Math.floor(chartAreaWidth / cellWidth);
-  const rowsPerPage = Math.floor(chartAreaHeight / cellHeight);
   const overlapRows = 2;
   const overlapCols = 2;
-  const effectiveRowsPerPage = rowsPerPage - overlapRows;
-  const effectiveColsPerPage = colsPerPage - overlapCols;
-  // Only paginate if chart doesn't fit on a single page
-  const numPageCols = colsPerPage >= widthStitches ? 1 : Math.ceil(widthStitches / effectiveColsPerPage);
-  const numPageRows = rowsPerPage >= heightRows ? 1 : Math.ceil(heightRows / effectiveRowsPerPage);
+
+  // Determine number of pages needed at minimum cell size
+  const colsPerPageMax = Math.floor(chartAreaWidth / cellWidth);
+  const rowsPerPageMax = Math.floor(chartAreaHeight / cellHeight);
+  const numPageCols = colsPerPageMax >= widthStitches ? 1 : Math.ceil(widthStitches / (colsPerPageMax - overlapCols));
+  const numPageRows = rowsPerPageMax >= heightRows ? 1 : Math.ceil(heightRows / (rowsPerPageMax - overlapRows));
+
+  // Balance columns evenly across pages, then recalculate cell size to fill available width
+  let effectiveColsPerPage, colsPerPage;
+  if (numPageCols > 1) {
+    effectiveColsPerPage = Math.ceil(widthStitches / numPageCols);
+    colsPerPage = effectiveColsPerPage + overlapCols;
+    cellWidth = Math.min(12, chartAreaWidth / colsPerPage);
+    cellHeight = cellWidth / stitchAR;
+  } else {
+    colsPerPage = colsPerPageMax;
+    effectiveColsPerPage = colsPerPage - overlapCols;
+  }
+
+  // Balance rows evenly across pages
+  const rowsPerPage = Math.floor(chartAreaHeight / cellHeight);
+  let effectiveRowsPerPage;
+  if (numPageRows > 1) {
+    effectiveRowsPerPage = Math.ceil(heightRows / numPageRows);
+  } else {
+    effectiveRowsPerPage = rowsPerPage - overlapRows;
+  }
 
   return { stitchAR, axisLabelWidth, axisLabelHeight, chartAreaWidth, chartAreaHeight,
     cellWidth, cellHeight, colsPerPage, rowsPerPage, effectiveRowsPerPage, effectiveColsPerPage,
