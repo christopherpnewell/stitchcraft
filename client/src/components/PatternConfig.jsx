@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PremiumBadge from './PremiumBadge.jsx';
 
 const GAUGE_PRESETS = [
   { label: 'Bulky (3 st/in)', stitchGauge: 12, rowGauge: 16 },
@@ -79,17 +80,20 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
               key={w}
               onClick={() => setWidthStitches(w)}
               className={`
-                px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
+                px-3 py-1.5 rounded-lg text-sm font-medium transition-colors relative
                 ${widthStitches === w
                   ? 'bg-brand-600 text-white shadow-sm'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }
               `}
             >
-              {w}
+              {w}{w > 100 && <span className="text-[8px] text-amber-500 ml-0.5">*</span>}
             </button>
           ))}
         </div>
+        {widthStitches > 100 && (
+          <div className="mt-1"><PremiumBadge /></div>
+        )}
         <p className="text-xs text-gray-400 mt-1">
           Wider = more detail, but takes longer to knit
         </p>
@@ -112,6 +116,9 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
           <span>2 (simple)</span>
           <span>12 (detailed)</span>
         </div>
+        {numColors > 8 && (
+          <div className="mt-1"><PremiumBadge /></div>
+        )}
       </div>
 
       {/* Gauge Preset */}
@@ -167,6 +174,9 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
         <p className="text-xs text-gray-400 mt-1">
           Adds project-specific construction instructions to your PDF
         </p>
+        {projectType.startsWith('sweater') && (
+          <div className="mt-1"><PremiumBadge /></div>
+        )}
       </div>
 
       {/* Stitch aspect ratio */}
@@ -183,10 +193,13 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
           label="Smooth isolated stitches"
           hint="Removes hard-to-knit single-stitch color islands"
         />
-        <Toggle checked={removeBackground} onChange={setRemoveBackground}
-          label="Remove background"
-          hint="Works best with photos that have a clear subject against a distinct background"
-        />
+        <div>
+          <Toggle checked={removeBackground} onChange={setRemoveBackground}
+            label="Remove background"
+            hint="Works best with photos that have a clear subject against a distinct background"
+          />
+          {removeBackground && <div className="ml-6.5 mt-0.5"><PremiumBadge /></div>}
+        </div>
         <Toggle checked={enhanceDetail} onChange={setEnhanceDetail}
           label="Enhance detail"
           hint="Boosts contrast and sharpness to retain shapes at low resolution"
