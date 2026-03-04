@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PremiumBadge from './PremiumBadge.jsx';
 
 const GAUGE_PRESETS = [
@@ -23,7 +23,7 @@ const PROJECT_TYPES = [
   { value: 'toteBag', label: 'Tote Bag' },
 ];
 
-export default function PatternConfig({ onGenerate, status, suggestions }) {
+export default function PatternConfig({ onGenerate, status, suggestions, onSettingsChange }) {
   const [widthStitches, setWidthStitches] = useState(60);
   const [numColors, setNumColors] = useState(6);
   const [gaugePreset, setGaugePreset] = useState(1);
@@ -33,15 +33,38 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
   const [removeBackground, setRemoveBackground] = useState(false);
   const [enhanceDetail, setEnhanceDetail] = useState(false);
   const [projectType, setProjectType] = useState('blanket');
+  const [settingsChanged, setSettingsChanged] = useState(false);
+  const lastGeneratedConfig = useRef(null);
+
+  const getCurrentConfig = () => ({
+    widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail, projectType,
+  });
+
+  const checkIfChanged = (overrides = {}) => {
+    if (!lastGeneratedConfig.current) return;
+    const current = { ...getCurrentConfig(), ...overrides };
+    const changed = JSON.stringify(current) !== JSON.stringify(lastGeneratedConfig.current);
+    setSettingsChanged(changed);
+    onSettingsChange?.(changed);
+  };
 
   // Apply suggestions when they arrive from upload
   useEffect(() => {
     if (!suggestions) return;
-    setWidthStitches(suggestions.suggestedWidth || 60);
-    setNumColors(suggestions.suggestedColors || 6);
-    if (suggestions.suggestedBackgroundRemoval) {
-      setRemoveBackground(true);
-    }
+    const newWidth = suggestions.suggestedWidth || 60;
+    const newColors = suggestions.suggestedColors || 6;
+    const newBgRemoval = suggestions.suggestedBackgroundRemoval ? true : removeBackground;
+    setWidthStitches(newWidth);
+    setNumColors(newColors);
+    if (suggestions.suggestedBackgroundRemoval) setRemoveBackground(true);
+    // Snapshot suggested config as the "last generated" baseline so initial auto-generate is clean
+    lastGeneratedConfig.current = {
+      widthStitches: newWidth,
+      numColors: newColors,
+      stitchGauge, rowGauge, cleanup,
+      removeBackground: newBgRemoval,
+      enhanceDetail, projectType,
+    };
   }, [suggestions]);
 
   useEffect(() => {
@@ -49,6 +72,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
     if (preset.stitchGauge !== null) {
       setStitchGauge(preset.stitchGauge);
       setRowGauge(preset.rowGauge);
+      checkIfChanged({ stitchGauge: preset.stitchGauge, rowGauge: preset.rowGauge });
     }
   }, [gaugePreset]);
 
@@ -67,13 +91,16 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
       return;
     }
     setWidthStitches(WIDTH_OPTIONS[nextIndex]);
+    checkIfChanged({ widthStitches: WIDTH_OPTIONS[nextIndex] });
     e.currentTarget.parentElement.children[nextIndex]?.focus();
   };
 
   const handleGenerate = () => {
-    onGenerate({
-      widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail, projectType,
-    });
+    const config = { widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail, projectType };
+    lastGeneratedConfig.current = config;
+    setSettingsChanged(false);
+    onSettingsChange?.(false);
+    onGenerate(config);
   };
 
   const stitchAR = rowGauge / stitchGauge;
@@ -96,7 +123,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
               role="radio"
               aria-checked={widthStitches === w}
               tabIndex={widthStitches === w ? 0 : -1}
-              onClick={() => setWidthStitches(w)}
+              onClick={() => { setWidthStitches(w); checkIfChanged({ widthStitches: w }); }}
               onKeyDown={(e) => handleWidthKeyDown(e, idx)}
               className={`
                 px-3 py-1.5 min-h-[44px] rounded-lg text-sm font-medium transition-colors relative
@@ -131,7 +158,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
           max={12}
           value={numColors}
           aria-valuetext={`${numColors} colors`}
-          onChange={e => setNumColors(parseInt(e.target.value, 10))}
+          onChange={e => { const v = parseInt(e.target.value, 10); setNumColors(v); checkIfChanged({ numColors: v }); }}
           className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-brand-600"
         />
         <div className="flex justify-between text-xs text-gray-500">
@@ -152,6 +179,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
           id="gaugePreset"
           value={gaugePreset}
           onChange={e => setGaugePreset(parseInt(e.target.value, 10))}
+          // checkIfChanged is called via the gaugePreset useEffect
           className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
         >
           {GAUGE_PRESETS.map((p, i) => (
@@ -166,14 +194,14 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
           <div>
             <label htmlFor="customStitchGauge" className="block text-xs font-medium text-gray-600 mb-1">Stitches per 4&quot;</label>
             <input id="customStitchGauge" type="number" min={5} max={60} value={stitchGauge}
-              onChange={e => setStitchGauge(parseInt(e.target.value, 10) || 18)}
+              onChange={e => { const v = parseInt(e.target.value, 10) || 18; setStitchGauge(v); checkIfChanged({ stitchGauge: v }); }}
               className="w-full px-2 py-1.5 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
           <div>
             <label htmlFor="customRowGauge" className="block text-xs font-medium text-gray-600 mb-1">Rows per 4&quot;</label>
             <input id="customRowGauge" type="number" min={5} max={60} value={rowGauge}
-              onChange={e => setRowGauge(parseInt(e.target.value, 10) || 24)}
+              onChange={e => { const v = parseInt(e.target.value, 10) || 24; setRowGauge(v); checkIfChanged({ rowGauge: v }); }}
               className="w-full px-2 py-1.5 rounded border border-gray-300 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
@@ -188,7 +216,7 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
         <select
           id="projectType"
           value={projectType}
-          onChange={e => setProjectType(e.target.value)}
+          onChange={e => { setProjectType(e.target.value); checkIfChanged({ projectType: e.target.value }); }}
           className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
         >
           {PROJECT_TYPES.map(pt => (
@@ -218,18 +246,18 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
 
       {/* Processing toggles */}
       <div className="space-y-2.5">
-        <Toggle checked={cleanup} onChange={setCleanup}
+        <Toggle checked={cleanup} onChange={v => { setCleanup(v); checkIfChanged({ cleanup: v }); }}
           label="Smooth isolated stitches"
           hint="Removes hard-to-knit single-stitch color islands"
         />
         <div>
-          <Toggle checked={removeBackground} onChange={setRemoveBackground}
+          <Toggle checked={removeBackground} onChange={v => { setRemoveBackground(v); checkIfChanged({ removeBackground: v }); }}
             label="Remove background"
             hint="Works best with photos that have a clear subject against a distinct background"
           />
           {removeBackground && <div className="ml-[1.625rem] mt-0.5"><PremiumBadge /></div>}
         </div>
-        <Toggle checked={enhanceDetail} onChange={setEnhanceDetail}
+        <Toggle checked={enhanceDetail} onChange={v => { setEnhanceDetail(v); checkIfChanged({ enhanceDetail: v }); }}
           label="Enhance detail"
           hint="Boosts contrast and sharpness to retain shapes at low resolution"
         />
@@ -238,13 +266,13 @@ export default function PatternConfig({ onGenerate, status, suggestions }) {
       {/* Generate Button */}
       <button
         onClick={handleGenerate}
-        disabled={isGenerating}
+        disabled={isGenerating || (!settingsChanged && lastGeneratedConfig.current !== null)}
         className={`
           w-full py-3 rounded-xl text-white font-semibold text-base
           transition-all duration-200 shadow-sm
           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-          ${isGenerating
-            ? 'bg-gray-400 cursor-wait'
+          ${isGenerating || (!settingsChanged && lastGeneratedConfig.current !== null)
+            ? isGenerating ? 'bg-gray-400 cursor-wait' : 'bg-gray-300 cursor-not-allowed'
             : 'bg-brand-600 hover:bg-brand-700 hover:shadow-md active:scale-[0.98]'
           }
         `}

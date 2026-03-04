@@ -144,6 +144,7 @@ function HomePage() {
   } = usePattern();
 
   const settingsRef = useRef(null);
+  const [settingsStale, setSettingsStale] = useState(false);
 
   // Reset document.title when on home page
   useEffect(() => {
@@ -263,11 +264,12 @@ function HomePage() {
               onGenerate={generate}
               status={status}
               suggestions={suggestions}
+              onSettingsChange={setSettingsStale}
             />
 
             {/* Download button */}
             {pattern && downloadUrl && (
-              <DownloadButton url={downloadUrl} />
+              <DownloadButton url={downloadUrl} disabled={settingsStale} />
             )}
 
             {/* Sidebar ad */}
@@ -349,7 +351,7 @@ function NotFound() {
   );
 }
 
-function DownloadButton({ url }) {
+function DownloadButton({ url, disabled = false }) {
   const [dlState, setDlState] = useState('idle'); // idle | downloading | done | error
 
   const handleDownload = async () => {
@@ -381,21 +383,25 @@ function DownloadButton({ url }) {
     error: 'Download failed — try again',
   }[dlState];
 
+  const isDisabled = disabled || dlState === 'downloading';
+
   return (
     <button
       onClick={handleDownload}
-      disabled={dlState === 'downloading'}
+      disabled={isDisabled}
       aria-label="Download PDF knitting pattern"
       className={`
         flex items-center justify-center gap-2 w-full py-3 rounded-xl text-center font-semibold text-base
         transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-        ${dlState === 'downloading'
-          ? 'bg-gray-400 text-white cursor-wait'
-          : dlState === 'done'
-            ? 'bg-green-600 text-white'
-            : dlState === 'error'
-              ? 'bg-red-600 text-white hover:bg-red-700'
-              : 'bg-gray-900 text-white hover:bg-gray-800 hover:shadow-md active:scale-[0.98]'
+        ${disabled
+          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          : dlState === 'downloading'
+            ? 'bg-gray-400 text-white cursor-wait'
+            : dlState === 'done'
+              ? 'bg-green-600 text-white'
+              : dlState === 'error'
+                ? 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-gray-900 text-white hover:bg-gray-800 hover:shadow-md active:scale-[0.98]'
         }
       `}
     >
