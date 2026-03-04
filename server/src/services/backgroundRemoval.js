@@ -19,9 +19,18 @@ import { v4 as uuidv4 } from 'uuid';
  * @param {string} outputDir - Directory for the output file
  * @returns {Promise<string>} Path to the processed image
  */
+const MAX_BG_REMOVAL_DIMENSION = 2048;
+
 export async function removeImageBackground(inputPath, outputDir) {
+  // Downscale large images before processing to prevent excessive memory allocation
+  const meta = await sharp(inputPath).metadata();
+  let pipeline = sharp(inputPath);
+  if (meta.width > MAX_BG_REMOVAL_DIMENSION || meta.height > MAX_BG_REMOVAL_DIMENSION) {
+    pipeline = pipeline.resize(MAX_BG_REMOVAL_DIMENSION, MAX_BG_REMOVAL_DIMENSION, { fit: 'inside' });
+  }
+
   // Read image as raw pixel data
-  const { data, info } = await sharp(inputPath)
+  const { data, info } = await pipeline
     .removeAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });

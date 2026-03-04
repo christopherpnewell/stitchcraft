@@ -20,16 +20,27 @@ const upload = multer({
   limits: { fileSize: getMaxFileSize() },
 });
 
-// In-memory session store for patterns (keyed by pattern ID)
+// In-memory session store for patterns (keyed by pattern ID) — bounded to prevent memory exhaustion
+const MAX_STORE_SIZE = 1000;
 const patternStore = new Map();
 
+function addToStore(id, entry) {
+  if (patternStore.size >= MAX_STORE_SIZE) {
+    // Evict oldest entry
+    const oldest = patternStore.keys().next().value;
+    const evicted = patternStore.get(oldest);
+    if (evicted?.imagePath) deleteImage(evicted.imagePath);
+    if (evicted?.bgRemovedPath) deleteImage(evicted.bgRemovedPath);
+    patternStore.delete(oldest);
+  }
+  patternStore.set(id, entry);
+}
+
 // Concurrency semaphore for CPU-intensive processing
-const MAX_CONCURRENT = parseInt(process.env.MAX_CONCURRENT_JOBS || '3', 10);
 let activeJobs = 0;
-const PROCESSING_TIMEOUT_MS = parseInt(process.env.PROCESSING_TIMEOUT_MS || '30000', 10);
 
 function acquireSlot() {
-  if (activeJobs >= MAX_CONCURRENT) return false;
+  if (activeJobs >= config.maxConcurrentJobs) return false;
   activeJobs++;
   return true;
 }
@@ -75,7 +86,7 @@ router.post('/upload', uploadRateLimiter(), upload.single('image'), async (req, 
       // Analysis is best-effort — don't fail the upload
     }
 
-    patternStore.set(id, {
+    addToStore(id, {
       imagePath,
       bgRemovedPath: null,
       createdAt: Date.now(),
@@ -98,18 +109,27 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
     return res.status(503).json({ error: 'Server is busy processing other patterns. Please try again shortly.' });
   }
 
+  let slotReleased = false;
+  function safeRelease() {
+    if (!slotReleased) {
+      slotReleased = true;
+      releaseSlot();
+    }
+  }
+
   // Set up a processing timeout
   const timeout = setTimeout(() => {
-    releaseSlot();
+    safeRelease();
     if (!res.headersSent) {
       res.status(504).json({ error: 'Processing took too long. Try a smaller grid size or fewer colors.' });
     }
-  }, PROCESSING_TIMEOUT_MS);
+  }, config.processingTimeoutMs);
 
   try {
     // Only allow known fields
     const { id, widthStitches, numColors, stitchGauge, rowGauge, cleanup, removeBackground, enhanceDetail, projectType } = req.body;
 
+    if (res.headersSent) return;
     if (!id || !patternStore.has(id)) {
       return res.status(404).json({ error: 'Upload session not found. Please upload an image first.' });
     }
@@ -185,6 +205,7 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
 
     session.pattern = pattern;
 
+    if (res.headersSent) return;
     trackEvent('generate', {
       widthStitches: width, numColors: colors, stitchGauge: sg, rowGauge: rg,
       cleanup: cleanup !== false, removeBackground: !!removeBackground,
@@ -209,10 +230,10 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
       },
     });
   } catch (err) {
-    next(err);
+    if (!res.headersSent) next(err);
   } finally {
     clearTimeout(timeout);
-    releaseSlot();
+    safeRelease();
   }
 });
 
@@ -220,11 +241,13 @@ router.post('/generate', uploadRateLimiter(), async (req, res, next) => {
  * GET /api/download/:id
  * Download the knitting pattern as a PDF.
  */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 router.get('/download/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    if (!id || !patternStore.has(id)) {
+    if (!id || !UUID_RE.test(id) || !patternStore.has(id)) {
       return res.status(404).json({ error: 'Pattern not found' });
     }
 

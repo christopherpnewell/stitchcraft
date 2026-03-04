@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs/promises';
+import { config } from './config.js';
 
 // Magic byte signatures for allowed image types
 const SIGNATURES = {
@@ -102,11 +103,18 @@ export async function sanitizeAndSave(buffer, uploadDir) {
 }
 
 /**
- * Delete a processed image file
+ * Delete a processed image file. Validates the path is within the upload directory
+ * to prevent path traversal attacks.
  */
 export async function deleteImage(filePath) {
   try {
-    await fs.unlink(filePath);
+    const resolved = path.resolve(filePath);
+    const uploadResolved = path.resolve(config.uploadDir);
+    if (!resolved.startsWith(uploadResolved + path.sep)) {
+      console.error('Attempted to delete file outside upload directory:', resolved);
+      return;
+    }
+    await fs.unlink(resolved);
   } catch {
     // File may already be deleted, ignore
   }
