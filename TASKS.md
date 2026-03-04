@@ -20,7 +20,7 @@
 - [x] 13. Technical SEO (sitemap.xml, robots.txt, clean URLs, CWV)
 
 ## Phase 4: Comprehensive Testing
-- [ ] 14. Full application testing (code review, API, UI, ADA, security, performance)
+- [x] 14. Full application testing (code review, API, UI, ADA, security, performance) → FULL_TEST_REPORT.md
 
 ## Phase 5: Expert Panel Review
-- [ ] 15. Five specialist sub-agents review and report
+- [x] 15. Five specialist sub-agents review and report → EXPERT_PANEL_REPORT.md
