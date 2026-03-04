@@ -24,3 +24,15 @@
 
 ## Phase 5: Expert Panel Review
 - [x] 15. Five specialist sub-agents review and report → EXPERT_PANEL_REPORT.md
+
+## Phase 6: Remediation (Phase 4 & 5 Findings)
+- [x] 16. Critical security: timing-safe auth, HMAC CSRF, XSS escaping, admin rate limiting
+- [x] 17. Critical backend: semaphore fix, timeout race, bounded store, path traversal check
+- [x] 18. Critical domain accuracy: yardage formula, gauge presets, float analysis, chart direction
+- [x] 19. Critical accessibility: keyboard upload, canvas a11y, h1 structure, skip link, inline errors
+- [x] 20. High accessibility & UX: aria-live, radiogroup, nav labels, form associations, 404 route
+- [x] 21. SEO: FAQ schema, sitemap lastmod, canonical normalization, 404 status, meta sanitization
+- [x] 22. Yarn & color: weight-filtered suggestions, duplicate removal, dead code cleanup
+- [x] 23. Performance: HTML caching, code splitting, vendor chunks, scroll-to-top, trust proxy
+- [x] 24. Medium polish: contrast fixes, touch targets, canvas clamp, scarf warning, stable keys
+- [x] 25. Low priority: graceful shutdown, cors removal, font preload, focus management, .env docs

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { usePattern } from './hooks/usePattern.js';
 import ImageUpload from './components/ImageUpload.jsx';
@@ -97,6 +97,15 @@ function HomePage() {
     reset,
   } = usePattern();
 
+  const settingsRef = useRef(null);
+
+  // Focus the settings panel after a successful upload
+  useEffect(() => {
+    if (status === 'uploaded' && settingsRef.current) {
+      settingsRef.current.focus();
+    }
+  }, [status]);
+
   const showConfig = ['uploaded', 'generating', 'ready', 'error'].includes(status) && status !== 'idle';
   const showPreview = (status === 'ready' || status === 'generating') && pattern;
   const downloadUrl = getDownloadUrl();
@@ -177,7 +186,7 @@ function HomePage() {
       {showConfig && (
         <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8">
           {/* Left sidebar */}
-          <div className="space-y-5">
+          <div ref={settingsRef} tabIndex={-1} className="space-y-5 outline-none">
             {/* Status badge */}
             {badgeInfo && (
               <div aria-live="polite" className={`flex items-center gap-3 p-3 border rounded-xl ${badgeColors[badgeInfo.color]}`}>
