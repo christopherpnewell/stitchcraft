@@ -48,6 +48,11 @@ if (!config.isDev && config.csrfSecret === 'dev-secret-change-in-production') {
   throw new Error('CSRF_SECRET must be set to a unique random value in production. Aborting.');
 }
 
+// Fail startup in production if SITE_URL is still pointing at localhost
+if (!config.isDev && config.siteUrl.includes('localhost')) {
+  throw new Error('SITE_URL must be set to your public URL in production. Aborting.');
+}
+
 export function getMaxFileSize() {
   return config.maxFileSizeMB * 1024 * 1024;
 }
