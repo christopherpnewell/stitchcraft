@@ -26,6 +26,14 @@ const PAGE = {
 const CONTENT_WIDTH = PAGE.width - PAGE.marginLeft - PAGE.marginRight;
 const CONTENT_HEIGHT = PAGE.height - PAGE.marginTop - PAGE.marginBottom;
 
+// Landscape letter dimensions (792×612)
+const LANDSCAPE = {
+  width: 792,
+  height: 612,
+  contentWidth: 792 - PAGE.marginLeft - PAGE.marginRight,
+  contentHeight: 612 - PAGE.marginTop - PAGE.marginBottom,
+};
+
 // Project type labels and construction data
 const PROJECT_INFO = {
   blanket: {
@@ -144,11 +152,11 @@ function drawTitlePage(doc, pattern, projectInfo, totalPages) {
     .text(projectInfo.description, { width: CONTENT_WIDTH, align: 'center' });
   doc.fillColor('#000');
 
-  doc.moveDown(1.5);
+  doc.moveDown(1);
 
   // Pattern summary box
   const boxY = doc.y;
-  const boxHeight = 250;
+  const boxHeight = 210;
   doc.roundedRect(PAGE.marginLeft, boxY, CONTENT_WIDTH, boxHeight, 8)
     .lineWidth(1).stroke('#ddd');
 
@@ -213,11 +221,11 @@ function drawTitlePage(doc, pattern, projectInfo, totalPages) {
   doc.fillColor('#000');
 
   // Gauge swatch section
-  doc.moveDown(1);
+  doc.moveDown(0.6);
   doc.fontSize(11).font('Helvetica-Bold')
     .text('Before You Begin — Gauge Swatch', PAGE.marginLeft, doc.y);
   doc.moveDown(0.4);
-  doc.fontSize(9).font('Helvetica').fillColor('#444');
+  doc.fontSize(8).font('Helvetica').fillColor('#444');
   doc.text(
     `Make a gauge swatch before you begin. Cast on 24 stitches and work 24 rows in stockinette stitch (knit RS rows, purl WS rows). Measure the centre 4" x 4" of the swatch. You should get ${pattern.stitchGauge} stitches and ${pattern.rowGauge} rows per 4". If your swatch is larger than 4", go down one needle size. If smaller, go up one needle size. Your finished piece dimensions depend on matching this gauge exactly.`,
     PAGE.marginLeft + 10, doc.y, { width: CONTENT_WIDTH - 20 }
@@ -225,7 +233,7 @@ function drawTitlePage(doc, pattern, projectInfo, totalPages) {
   doc.fillColor('#000');
 
   // How to Read This Chart
-  doc.moveDown(1);
+  doc.moveDown(0.6);
   doc.fontSize(11).font('Helvetica-Bold')
     .text('How to Read This Chart', PAGE.marginLeft, doc.y);
 
@@ -247,8 +255,8 @@ function drawTitlePage(doc, pattern, projectInfo, totalPages) {
   }
   doc.fillColor('#000');
 
-  // Abbreviations table
-  doc.moveDown(0.8);
+  // Abbreviations table — 2 columns (5 per column)
+  doc.moveDown(0.5);
   doc.fontSize(11).font('Helvetica-Bold')
     .text('Abbreviations', PAGE.marginLeft, doc.y);
   doc.moveDown(0.3);
@@ -267,15 +275,25 @@ function drawTitlePage(doc, pattern, projectInfo, totalPages) {
   ];
 
   doc.fontSize(8).font('Helvetica');
-  const abbrColLeft = PAGE.marginLeft + 10;
-  const abbrColRight = PAGE.marginLeft + 100;
+  const abbrevStartY = doc.y;
+  const col1TermX = PAGE.marginLeft + 10;
+  const col1MeanX = PAGE.marginLeft + 68;
+  const col2TermX = PAGE.marginLeft + CONTENT_WIDTH / 2 + 5;
+  const col2MeanX = PAGE.marginLeft + CONTENT_WIDTH / 2 + 63;
+  const abbrevRowH = 13;
+  const abbrevMeanWidth = CONTENT_WIDTH / 2 - 75;
 
-  for (const [term, meaning] of abbrevs) {
-    const abbrY = doc.y;
-    doc.font('Helvetica-Bold').fillColor('#333').text(term, abbrColLeft, abbrY, { width: 85, lineBreak: false });
-    doc.font('Helvetica').fillColor('#555').text(meaning, abbrColRight, abbrY, { width: CONTENT_WIDTH - 110 });
-    doc.moveDown(0.05);
+  for (let i = 0; i < abbrevs.length; i++) {
+    const [term, meaning] = abbrevs[i];
+    const isRight = i >= 5;
+    const rowIndex = isRight ? i - 5 : i;
+    const termX = isRight ? col2TermX : col1TermX;
+    const meanX = isRight ? col2MeanX : col1MeanX;
+    const abbrY = abbrevStartY + rowIndex * abbrevRowH;
+    doc.font('Helvetica-Bold').fillColor('#333').text(term, termX, abbrY, { width: 52, lineBreak: false });
+    doc.font('Helvetica').fillColor('#555').text(meaning, meanX, abbrY, { width: abbrevMeanWidth, lineBreak: false });
   }
+  doc.y = abbrevStartY + 5 * abbrevRowH;
   doc.fillColor('#000');
 
   // Page footer
@@ -287,23 +305,29 @@ function drawInfoRow(doc, x, y, label, value) {
   doc.font('Helvetica').text(' ' + value);
 }
 
-function drawPageFooter(doc, pageNum, totalPages) {
+function drawPageFooter(doc, pageNum, totalPages, pageHeight = PAGE.height) {
   doc.fontSize(7).font('Helvetica').fillColor('#999')
     .text(
       `Page ${pageNum} of ${totalPages}`,
-      PAGE.marginLeft, PAGE.height - PAGE.marginBottom + 10,
-      { width: CONTENT_WIDTH, align: 'center' }
+      PAGE.marginLeft, pageHeight - PAGE.marginBottom + 10,
+      { width: CONTENT_WIDTH, align: 'center', lineBreak: false }
     );
   doc.fillColor('#000');
 }
 
-function getChartLayout(pattern) {
+function shouldUseLandscape(pattern) {
+  return pattern.widthStitches > pattern.heightRows;
+}
+
+function getChartLayout(pattern, useLandscape = false) {
   const { widthStitches, heightRows, stitchGauge, rowGauge } = pattern;
   const stitchAR = rowGauge / stitchGauge;
   const axisLabelWidth = 30;
   const axisLabelHeight = 20;
-  const chartAreaWidth = CONTENT_WIDTH - axisLabelWidth;
-  const chartAreaHeight = CONTENT_HEIGHT - axisLabelHeight - 50; // extra space for mini key
+  const areaWidth = useLandscape ? LANDSCAPE.contentWidth : CONTENT_WIDTH;
+  const areaHeight = useLandscape ? LANDSCAPE.contentHeight : CONTENT_HEIGHT;
+  const chartAreaWidth = areaWidth - axisLabelWidth;
+  const chartAreaHeight = areaHeight - axisLabelHeight - 50; // extra space for mini key
 
   let cellWidth = Math.min(12, chartAreaWidth / widthStitches);
   let cellHeight = cellWidth / stitchAR;
@@ -317,8 +341,9 @@ function getChartLayout(pattern) {
   const overlapCols = 2;
   const effectiveRowsPerPage = rowsPerPage - overlapRows;
   const effectiveColsPerPage = colsPerPage - overlapCols;
-  const numPageCols = Math.ceil(widthStitches / effectiveColsPerPage);
-  const numPageRows = Math.ceil(heightRows / effectiveRowsPerPage);
+  // Only paginate if chart doesn't fit on a single page
+  const numPageCols = colsPerPage >= widthStitches ? 1 : Math.ceil(widthStitches / effectiveColsPerPage);
+  const numPageRows = rowsPerPage >= heightRows ? 1 : Math.ceil(heightRows / effectiveRowsPerPage);
 
   return { stitchAR, axisLabelWidth, axisLabelHeight, chartAreaWidth, chartAreaHeight,
     cellWidth, cellHeight, colsPerPage, rowsPerPage, effectiveRowsPerPage, effectiveColsPerPage,
@@ -326,18 +351,25 @@ function getChartLayout(pattern) {
 }
 
 function calculateChartPageCount(pattern) {
-  const { numPageCols, numPageRows } = getChartLayout(pattern);
+  const { numPageCols, numPageRows } = getChartLayout(pattern, shouldUseLandscape(pattern));
   return numPageCols * numPageRows;
 }
 
 function drawChartPages(doc, pattern, totalPages) {
   const { grid, palette, widthStitches, heightRows } = pattern;
+  const useLandscape = shouldUseLandscape(pattern);
+  const pageHeight = useLandscape ? LANDSCAPE.height : PAGE.height;
+  const contentWidth = useLandscape ? LANDSCAPE.contentWidth : CONTENT_WIDTH;
   const { cellWidth, cellHeight, colsPerPage, rowsPerPage,
-    effectiveRowsPerPage, effectiveColsPerPage, numPageCols, numPageRows } = getChartLayout(pattern);
+    effectiveRowsPerPage, effectiveColsPerPage, numPageCols, numPageRows } = getChartLayout(pattern, useLandscape);
 
   for (let pageRow = 0; pageRow < numPageRows; pageRow++) {
     for (let pageCol = 0; pageCol < numPageCols; pageCol++) {
-      doc.addPage();
+      if (useLandscape) {
+        doc.addPage({ layout: 'landscape' });
+      } else {
+        doc.addPage();
+      }
 
       const startCol = pageCol * effectiveColsPerPage;
       const startRow = pageRow * effectiveRowsPerPage;
@@ -350,7 +382,7 @@ function drawChartPages(doc, pattern, totalPages) {
       doc.fontSize(9).font('Helvetica-Bold')
         .text(
           `Chart — Stitches ${startCol + 1}–${endCol} of ${widthStitches}, Rows ${startRow + 1}–${endRow} of ${heightRows}`,
-          PAGE.marginLeft, PAGE.marginTop, { width: CONTENT_WIDTH }
+          PAGE.marginLeft, PAGE.marginTop, { width: contentWidth }
         );
 
       const chartX = PAGE.marginLeft;
@@ -434,7 +466,7 @@ function drawChartPages(doc, pattern, totalPages) {
       doc.fontSize(7).font('Helvetica');
       for (const idx of [...usedOnPage].sort((a, b) => a - b)) {
         const color = palette[idx];
-        if (keyX + 70 > PAGE.marginLeft + CONTENT_WIDTH) {
+        if (keyX + 70 > PAGE.marginLeft + contentWidth) {
           keyX = PAGE.marginLeft;
           // If we'd overflow vertically, skip
         }
@@ -447,7 +479,7 @@ function drawChartPages(doc, pattern, totalPages) {
       }
 
       const chartPageNum = pageRow * numPageCols + pageCol + 2;
-      drawPageFooter(doc, chartPageNum, totalPages);
+      drawPageFooter(doc, chartPageNum, totalPages, pageHeight);
     }
   }
 }
