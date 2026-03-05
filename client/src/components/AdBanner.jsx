@@ -70,7 +70,7 @@ export default function AdBanner({ slot, format = 'auto', className = '' }) {
       <ins
         ref={adRef}
         className="adsbygoogle"
-        style={{ display: 'block' }}
+        style={{ display: 'block', width: '100%' }}
         data-ad-client={publisherId}
         data-ad-slot={slot}
         data-ad-format={format}
