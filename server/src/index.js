@@ -1,5 +1,5 @@
 /**
- * Knit It server — Express application entry point.
+ * Loominade server — Express application entry point.
  */
 import express from 'express';
 import cookieParser from 'cookie-parser';
@@ -106,28 +106,28 @@ try {
   // Route-specific meta for SEO
   const routeMeta = {
     '/': {
-      title: 'Knit It — Image to Knitting Pattern Generator',
+      title: 'Loominade — Image to Knitting Pattern Generator',
       description: 'Turn any image into a professional colorwork knitting pattern. Upload a photo, drawing, or logo and get a print-ready PDF chart with yarn suggestions, gauge notes, and construction instructions.',
     },
     '/how-it-works': {
-      title: 'How It Works — Knit It',
-      description: 'Learn how Knit It converts any image into a colorwork knitting pattern in three simple steps: upload, customize, and download a print-ready PDF.',
+      title: 'How It Works — Loominade',
+      description: 'Learn how Loominade converts any image into a colorwork knitting pattern in three simple steps: upload, customize, and download a print-ready PDF.',
     },
     '/faq': {
-      title: 'Knitting Pattern Generator FAQ | Knit It',
-      description: 'Frequently asked questions about Knit It: file types, pattern width, gauge, colors, background removal, project types, privacy, and more.',
+      title: 'Knitting Pattern Generator FAQ | Loominade',
+      description: 'Frequently asked questions about Loominade: file types, pattern width, gauge, colors, background removal, project types, privacy, and more.',
     },
     '/about': {
-      title: 'About — Knit It',
-      description: 'About Knit It: a free web tool that converts any image into a colorwork knitting pattern with aspect ratio correction, smart color quantization, and professional PDF output.',
+      title: 'About — Loominade',
+      description: 'About Loominade: a free web tool that converts any image into a colorwork knitting pattern with aspect ratio correction, smart color quantization, and professional PDF output.',
     },
     '/privacy': {
-      title: 'Privacy Policy — Knit It',
-      description: 'Privacy policy for Knit It: what data we collect, how we use it, and information about Google AdSense cookies, Amazon affiliate links, and image handling.',
+      title: 'Privacy Policy — Loominade',
+      description: 'Privacy policy for Loominade: what data we collect, how we use it, and information about Google AdSense cookies, Amazon affiliate links, and image handling.',
     },
     '/terms': {
-      title: 'Terms of Service — Knit It',
-      description: 'Terms of service for Knit It: acceptable use, intellectual property, disclaimer of warranties, and limitation of liability.',
+      title: 'Terms of Service — Loominade',
+      description: 'Terms of service for Loominade: acceptable use, intellectual property, disclaimer of warranties, and limitation of liability.',
     },
   };
 
@@ -198,7 +198,7 @@ try {
 } catch {
   if (config.isDev) {
     app.get('/', (req, res) => {
-      res.json({ message: 'Knit It API running. Build the client with: cd client && npm run build' });
+      res.json({ message: 'Loominade API running. Build the client with: cd client && npm run build' });
     });
   }
 }
@@ -207,7 +207,7 @@ try {
 app.use(errorHandler);
 
 const server = app.listen(config.port, () => {
-  console.log(`Knit It server running on port ${config.port} [${config.nodeEnv}]`);
+  console.log(`Loominade server running on port ${config.port} [${config.nodeEnv}]`);
 });
 
 // Graceful shutdown

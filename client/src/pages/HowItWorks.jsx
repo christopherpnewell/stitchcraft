@@ -3,18 +3,18 @@ import { Link } from 'react-router-dom';
 
 export default function HowItWorks() {
   useEffect(() => {
-    document.title = 'How It Works — Knit It';
+    document.title = 'How It Works — Loominade';
   }, []);
 
   const howToSchema = {
     '@context': 'https://schema.org',
     '@type': 'HowTo',
     name: 'How to Turn an Image into a Knitting Pattern',
-    description: 'Convert any image into a professional colorwork knitting chart in three simple steps using Knit It.',
+    description: 'Convert any image into a professional colorwork knitting chart in three simple steps using Loominade.',
     step: [
-      { '@type': 'HowToStep', name: 'Upload Your Image', text: 'Drag and drop or tap to select a JPEG, PNG, WebP, or GIF image (up to 10 MB). Knit It analyzes the image to suggest optimal settings.' },
+      { '@type': 'HowToStep', name: 'Upload Your Image', text: 'Drag and drop or tap to select a JPEG, PNG, WebP, or GIF image (up to 10 MB). Loominade analyzes the image to suggest optimal settings.' },
       { '@type': 'HowToStep', name: 'Customize Your Pattern', text: 'Adjust width, number of yarn colors, yarn weight gauge preset, and project type. Toggle options like background removal and detail enhancement.' },
-      { '@type': 'HowToStep', name: 'Preview & Download', text: 'Knit It generates a pixel-perfect colorwork chart with accurate stitch aspect ratio. Download a print-ready PDF with chart, legend, yardage estimates, and construction notes.' },
+      { '@type': 'HowToStep', name: 'Preview & Download', text: 'Loominade generates a pixel-perfect colorwork chart with accurate stitch aspect ratio. Download a print-ready PDF with chart, legend, yardage estimates, and construction notes.' },
     ],
     tool: [{ '@type': 'HowToTool', name: 'Web browser' }],
   };
@@ -26,11 +26,11 @@ export default function HowItWorks() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
       />
       <h1 className="text-3xl sm:text-4xl font-display font-bold text-gray-900 mb-6">
-        How <span className="text-brand-600">Knit It</span> Works
+        How <span className="text-brand-600">Loominade</span> Works
       </h1>
 
       <p className="text-lg text-gray-600 mb-10">
-        Knit It converts any image — a photo, drawing, or logo — into a professional
+        Loominade converts any image — a photo, drawing, or logo — into a professional
         colorwork knitting chart in three simple steps.
       </p>
 
@@ -38,7 +38,7 @@ export default function HowItWorks() {
         <Step number={1} title="Upload Your Image">
           <p>
             Drag and drop or tap to select a JPEG, PNG, WebP, or GIF image (up to 10 MB).
-            Knit It analyzes the image to suggest optimal grid width, number of colors,
+            Loominade analyzes the image to suggest optimal grid width, number of colors,
             and whether background removal would help.
           </p>
         </Step>
@@ -53,7 +53,7 @@ export default function HowItWorks() {
 
         <Step number={3} title="Preview & Download">
           <p>
-            Knit It generates a pixel-perfect colorwork chart with accurate stitch aspect ratio.
+            Loominade generates a pixel-perfect colorwork chart with accurate stitch aspect ratio.
             View the chart on screen with a full color legend including yarn suggestions,
             then download a print-ready PDF with a visual colorwork chart, yardage estimates,
             and construction notes for your chosen project type.
@@ -79,7 +79,7 @@ export default function HowItWorks() {
           Try It Now
         </Link>
         <p className="text-sm text-gray-500">
-          Have questions? Check the <Link to="/faq" className="text-brand-600 hover:text-brand-700 underline rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">FAQ</Link> | <Link to="/about" className="text-brand-600 hover:text-brand-700 underline rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">About Knit It</Link>
+          Have questions? Check the <Link to="/faq" className="text-brand-600 hover:text-brand-700 underline rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">FAQ</Link> | <Link to="/about" className="text-brand-600 hover:text-brand-700 underline rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">About Loominade</Link>
         </p>
       </div>
     </main>

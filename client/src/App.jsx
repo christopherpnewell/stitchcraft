@@ -68,8 +68,8 @@ export default function App() {
           <Link to="/privacy" className="hover:text-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">Privacy Policy</Link>
           <Link to="/terms" className="hover:text-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">Terms of Service</Link>
         </nav>
-        <p>Knit It — Image to Knitting Pattern Generator</p>
-        <p>We collect anonymous usage statistics to improve Knit It. No images or personal information are stored.</p>
+        <p>Loominade — Image to Knitting Pattern Generator</p>
+        <p>We collect anonymous usage statistics to improve Loominade. No images or personal information are stored.</p>
       </footer>
     </div>
   );
@@ -111,7 +111,7 @@ function Header() {
             </svg>
           </div>
           <span className="text-xl font-display font-bold text-gray-900">
-            Knit<span className="text-brand-600"> It</span>
+            Loom<span className="text-brand-600">inade</span>
           </span>
         </Link>
         <nav aria-label="Main navigation" className="hidden sm:flex items-center gap-4 text-sm">
@@ -165,7 +165,7 @@ function HomePage() {
 
   // Reset document.title when on home page
   useEffect(() => {
-    document.title = 'Knit It — Image to Knitting Pattern Generator';
+    document.title = 'Loominade — Image to Knitting Pattern Generator';
   }, []);
 
   const showConfig = ['generating', 'ready', 'error'].includes(status) && sessionId;
@@ -354,7 +354,7 @@ function HomePage() {
 
 function NotFound() {
   useEffect(() => {
-    document.title = 'Page Not Found — Knit It';
+    document.title = 'Page Not Found — Loominade';
   }, []);
 
   return (
@@ -380,7 +380,7 @@ function DownloadButton({ url, disabled = false }) {
       const objUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = objUrl;
-      a.download = 'knit-it-pattern.pdf';
+      a.download = 'loominade-pattern.pdf';
       document.body.appendChild(a);
       a.click();
       a.remove();

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export default function Privacy() {
   useEffect(() => {
-    document.title = 'Privacy Policy — Knit It';
+    document.title = 'Privacy Policy — Loominade';
   }, []);
 
   return (
@@ -13,7 +13,7 @@ export default function Privacy() {
 
       <Section title="Overview">
         <p>
-          Knit It (&ldquo;we&rdquo;, &ldquo;our&rdquo;, &ldquo;the service&rdquo;) is a free web tool that converts
+          Loominade (&ldquo;we&rdquo;, &ldquo;our&rdquo;, &ldquo;the service&rdquo;) is a free web tool that converts
           images into knitting patterns. This policy explains what data we collect, how we use it,
           and your rights.
         </p>
@@ -116,7 +116,7 @@ export default function Privacy() {
           to="/"
           className="text-sm text-brand-600 hover:text-brand-700 rounded focus:outline-none focus:ring-2 focus:ring-brand-500"
         >
-          ← Back to Knit It
+          ← Back to Loominade
         </Link>
       </div>
     </main>
