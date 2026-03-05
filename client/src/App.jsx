@@ -293,7 +293,7 @@ function HomePage() {
             )}
 
             {/* Sidebar ad */}
-            <AdBanner slot={window.__AD_SLOT_SIDEBAR__} className="hidden lg:flex" />
+            <AdBanner slot={window.__AD_SLOT_SIDEBAR__} />
 
             {/* Tips */}
             <Tips />
