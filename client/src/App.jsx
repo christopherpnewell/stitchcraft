@@ -7,7 +7,7 @@ import PatternPreview from './components/PatternPreview.jsx';
 import ColorLegend from './components/ColorLegend.jsx';
 import Tips from './components/Tips.jsx';
 import AdBanner from './components/AdBanner.jsx';
-import CookieConsent from './components/CookieConsent.jsx';
+
 
 // Code-split secondary pages — only loaded when navigated to
 const HowItWorks = lazy(() => import('./pages/HowItWorks.jsx'));
@@ -71,7 +71,6 @@ export default function App() {
         <p>Knit It — Image to Knitting Pattern Generator</p>
         <p>We collect anonymous usage statistics to improve Knit It. No images or personal information are stored.</p>
       </footer>
-      <CookieConsent />
     </div>
   );
 }
