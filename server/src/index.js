@@ -183,6 +183,7 @@ try {
     // Inject publisher meta and ad slot config — client loads adsbygoogle.js after cookie consent
     if (config.enableAds && config.adsensePublisherId) {
       const adConfig = `
+    <meta name="google-adsense-account" content="${config.adsensePublisherId}">
     <meta name="adsense-publisher" content="${config.adsensePublisherId}">
     <script>window.__AD_SLOT_TOP__="${config.adSlotTop}";window.__AD_SLOT_SIDEBAR__="${config.adSlotSidebar}";</script>`;
       html = html.replace('</head>', `${adConfig}\n  </head>`);
