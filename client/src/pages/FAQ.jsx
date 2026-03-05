@@ -12,7 +12,7 @@ const FAQS = [
   },
   {
     q: 'What is stitch gauge and why does it matter?',
-    a: 'Gauge is the number of stitches and rows per 4 inches (10 cm) in your chosen yarn. Knit It uses your gauge to correct the aspect ratio — knit stitches are wider than tall, so the chart must compensate to keep your finished piece looking like the original image.',
+    a: 'Gauge is the number of stitches and rows per 4 inches (10 cm) in your chosen yarn. Loominade uses your gauge to correct the aspect ratio — knit stitches are wider than tall, so the chart must compensate to keep your finished piece looking like the original image.',
   },
   {
     q: 'How many colors should I use?',
@@ -31,22 +31,22 @@ const FAQS = [
     a: 'Blanket/afghan, scarf/cowl, pillow/cushion, wall hanging/tapestry, sweater panels (back, left chest, right chest), and tote bag. Each type includes project-specific construction instructions and materials lists in the PDF.',
   },
   {
-    q: 'Is Knit It free?',
-    a: 'Yes! Knit It is currently in free beta. All features — including wide patterns, many colors, background removal, and sweater templates — are available at no cost during the beta period.',
+    q: 'Is Loominade free?',
+    a: 'Yes! Loominade is currently in free beta. All features — including wide patterns, many colors, background removal, and sweater templates — are available at no cost during the beta period.',
   },
   {
     q: 'Are my images stored or shared?',
     a: 'No. Uploaded images are processed in memory and temporarily cached for your session only. They are automatically deleted after you download your pattern or after 30 minutes, whichever comes first. We collect only anonymous usage statistics (no images, no personal data).',
   },
   {
-    q: 'Can I use Knit It for crochet?',
+    q: 'Can I use Loominade for crochet?',
     a: 'The charts work for any grid-based fiber art — knitting, crochet, cross-stitch, or needlepoint. Just adjust the gauge to match your craft. The construction instructions are knitting-specific, but the chart and color legend are universal.',
   },
 ];
 
 export default function FAQ() {
   useEffect(() => {
-    document.title = 'Knitting Pattern Generator FAQ | Knit It';
+    document.title = 'Knitting Pattern Generator FAQ | Loominade';
   }, []);
 
   // Build FAQPage JSON-LD
@@ -74,7 +74,7 @@ export default function FAQ() {
         Frequently Asked Questions
       </h1>
       <p className="text-lg text-gray-600 mb-10">
-        Everything you need to know about turning images into knitting patterns with Knit It.
+        Everything you need to know about turning images into knitting patterns with Loominade.
       </p>
 
       <div className="space-y-6">
@@ -94,7 +94,7 @@ export default function FAQ() {
           Try It Now
         </Link>
         <p className="text-sm text-gray-500">
-          Learn more: <Link to="/how-it-works" className="text-brand-600 hover:text-brand-700 underline rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">How It Works</Link> | <Link to="/about" className="text-brand-600 hover:text-brand-700 underline rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">About Knit It</Link>
+          Learn more: <Link to="/how-it-works" className="text-brand-600 hover:text-brand-700 underline rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">How It Works</Link> | <Link to="/about" className="text-brand-600 hover:text-brand-700 underline rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">About Loominade</Link>
         </p>
       </div>
     </main>

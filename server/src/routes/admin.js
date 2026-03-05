@@ -80,7 +80,7 @@ router.get('/', (req, res) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Knit It — Admin Dashboard</title>
+  <title>Loominade — Admin Dashboard</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; color: #333; }
     h1 { color: #d92668; }
@@ -95,7 +95,7 @@ router.get('/', (req, res) => {
   </style>
 </head>
 <body>
-  <h1>Knit It Dashboard</h1>
+  <h1>Loominade Dashboard</h1>
   <p>Analytics for the last ${escapeHtml(days)} days. <a href="?days=7">7d</a> | <a href="?days=30">30d</a> | <a href="?days=90">90d</a></p>
 
   <div>

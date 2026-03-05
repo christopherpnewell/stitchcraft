@@ -24,10 +24,10 @@ COPY --from=client-build /app/client/dist ./client/dist
 RUN mkdir -p /app/server/uploads /app/server/tmp /app/data
 
 # Non-root user for security
-RUN addgroup -g 1001 -S knitit && \
-    adduser -S knitit -u 1001 -G knitit && \
-    chown -R knitit:knitit /app
-USER knitit
+RUN addgroup -g 1001 -S loominade && \
+    adduser -S loominade -u 1001 -G loominade && \
+    chown -R loominade:loominade /app
+USER loominade
 
 ENV NODE_ENV=production
 ENV PORT=3000

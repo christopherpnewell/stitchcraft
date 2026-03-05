@@ -296,7 +296,7 @@ router.get('/download/:id', uploadRateLimiter(), async (req, res, next) => {
 
     trackEvent('download', { projectType: session.pattern.projectType });
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="KnitIt-Pattern-${id.slice(0, 8)}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="Loominade-Pattern-${id.slice(0, 8)}.pdf"`);
     res.setHeader('Content-Length', pdfBuffer.length);
     res.send(pdfBuffer);
   } catch (err) {

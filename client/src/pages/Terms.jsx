@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export default function Terms() {
   useEffect(() => {
-    document.title = 'Terms of Service — Knit It';
+    document.title = 'Terms of Service — Loominade';
   }, []);
 
   return (
@@ -13,13 +13,13 @@ export default function Terms() {
 
       <Section title="Acceptance of Terms">
         <p>
-          By using Knit It (&ldquo;the service&rdquo;), you agree to these Terms of
+          By using Loominade (&ldquo;the service&rdquo;), you agree to these Terms of
           Service. If you do not agree, please do not use the service.
         </p>
       </Section>
 
       <Section title="Use of the Service">
-        <p className="mb-2">You may use Knit It to convert images into knitting patterns for personal or commercial use. You agree not to:</p>
+        <p className="mb-2">You may use Loominade to convert images into knitting patterns for personal or commercial use. You agree not to:</p>
         <ul className="list-disc pl-5 space-y-1">
           <li>Upload images that infringe third-party intellectual property rights</li>
           <li>Upload images containing illegal content</li>
@@ -52,7 +52,7 @@ export default function Terms() {
 
       <Section title="Limitation of Liability">
         <p>
-          To the maximum extent permitted by law, Knit It and its operators shall not be liable for
+          To the maximum extent permitted by law, Loominade and its operators shall not be liable for
           any indirect, incidental, special, or consequential damages arising from your use of the
           service, including but not limited to costs of yarn, wasted materials, or unsatisfactory
           knitting results.
@@ -96,7 +96,7 @@ export default function Terms() {
           to="/"
           className="text-sm text-brand-600 hover:text-brand-700 rounded focus:outline-none focus:ring-2 focus:ring-brand-500"
         >
-          ← Back to Knit It
+          ← Back to Loominade
         </Link>
       </div>
     </main>

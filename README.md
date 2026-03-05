@@ -1,4 +1,4 @@
-# Knit It — Image to Knitting Pattern Generator
+# Loominade — Image to Knitting Pattern Generator
 
 Upload any image and get a professional, print-ready colorwork knitting pattern as a PDF. Handles stitch aspect ratio correctly, produces clean color-quantized charts, and includes yarn estimates.
 

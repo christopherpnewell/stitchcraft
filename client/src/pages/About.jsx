@@ -3,18 +3,18 @@ import { Link } from 'react-router-dom';
 
 export default function About() {
   useEffect(() => {
-    document.title = 'About — Knit It';
+    document.title = 'About — Loominade';
   }, []);
 
   return (
     <main id="main-content" className="max-w-3xl mx-auto py-12 px-4 sm:px-6">
       <h1 className="text-3xl sm:text-4xl font-display font-bold text-gray-900 mb-6">
-        About <span className="text-brand-600">Knit It</span>
+        About <span className="text-brand-600">Loominade</span>
       </h1>
 
       <div className="space-y-6 text-gray-600 leading-relaxed">
         <p className="text-lg">
-          Knit It is a free web tool that converts any image into a colorwork knitting pattern.
+          Loominade is a free web tool that converts any image into a colorwork knitting pattern.
           Upload a photo, logo, or drawing and get a print-ready PDF chart with yarn suggestions,
           yardage estimates, and project-specific construction instructions.
         </p>
@@ -26,7 +26,7 @@ export default function About() {
           producing charts that look great on screen but knit up distorted.
         </p>
         <p>
-          Knit It solves this with aspect-ratio-correct chart generation, smart color quantization,
+          Loominade solves this with aspect-ratio-correct chart generation, smart color quantization,
           and practical features like stitch smoothing and background removal. The goal is simple:
           let crafters focus on knitting, not on pixel math.
         </p>
@@ -52,7 +52,7 @@ export default function About() {
 
         <h2 className="text-xl font-semibold text-gray-800 pt-4">Open Beta</h2>
         <p>
-          Knit It is currently in free open beta. All features, including premium ones like wide patterns,
+          Loominade is currently in free open beta. All features, including premium ones like wide patterns,
           many-color palettes, background removal, and sweater templates, are unlocked at no cost.
         </p>
       </div>
