@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { useCookieConsent } from './CookieConsent.jsx';
 
 // Module-level promise so multiple AdBanner instances share one script load
 let _scriptPromise = null;
@@ -28,22 +27,20 @@ function getPublisherId() {
 
 /**
  * Google AdSense ad unit.
- * Only loads the AdSense script and renders after the user has consented
- * to cookies via the CookieConsent banner.
+ * Loads ads when a slot and publisher ID are configured.
+ * Consent is handled by Google's built-in GDPR consent mechanism.
  */
 export default function AdBanner({ slot, format = 'auto', className = '' }) {
-  const consent = useCookieConsent();
   const adRef = useRef(null);
   const pushed = useRef(false);
   const [scriptReady, setScriptReady] = useState(false);
 
   useEffect(() => {
-    if (consent !== 'accepted') return;
     const publisherId = getPublisherId();
     if (!publisherId || !slot) return;
 
     loadAdsenseScript(publisherId).then(() => setScriptReady(true));
-  }, [consent, slot]);
+  }, [slot]);
 
   useEffect(() => {
     if (!scriptReady || pushed.current || !adRef.current) return;
@@ -56,7 +53,7 @@ export default function AdBanner({ slot, format = 'auto', className = '' }) {
     }
   }, [scriptReady]);
 
-  if (!slot || consent !== 'accepted') return null;
+  if (!slot) return null;
 
   const publisherId = getPublisherId();
   if (!publisherId) return null;

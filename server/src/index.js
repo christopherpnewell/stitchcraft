@@ -180,7 +180,7 @@ try {
       `$1${meta.description}$2`
     );
 
-    // Inject publisher meta and ad slot config — client loads adsbygoogle.js after cookie consent
+    // Inject publisher meta and ad slot config
     if (config.enableAds && config.adsensePublisherId) {
       const adConfig = `
     <meta name="adsense-publisher" content="${config.adsensePublisherId}">

@@ -45,12 +45,13 @@ export default function Privacy() {
       </Section>
 
       <Section title="Third-Party Services">
-        <h3 className="font-semibold text-gray-800 mb-1">Google AdSense (if you consent)</h3>
+        <h3 className="font-semibold text-gray-800 mb-1">Google AdSense</h3>
         <p className="mb-3">
-          If you click &ldquo;Accept&rdquo; on the cookie banner, we load Google AdSense, which may
-          set cookies such as <code className="bg-gray-100 px-1 rounded text-xs">__gads</code> and{' '}
+          We display advertisements via Google AdSense, which may set cookies such as{' '}
+          <code className="bg-gray-100 px-1 rounded text-xs">__gads</code> and{' '}
           <code className="bg-gray-100 px-1 rounded text-xs">__gpi</code> to serve personalized
-          advertisements. Google&rsquo;s use of advertising cookies is governed by{' '}
+          advertisements. Google manages cookie consent directly through its own GDPR consent
+          mechanism. Google&rsquo;s use of advertising cookies is governed by{' '}
           <a
             href="https://policies.google.com/privacy"
             target="_blank"
@@ -59,7 +60,7 @@ export default function Privacy() {
           >
             Google&rsquo;s Privacy Policy
           </a>
-          . If you decline, no AdSense cookies are set.
+          .
         </p>
 
         <h3 className="font-semibold text-gray-800 mb-1">Amazon Associates</h3>
@@ -97,7 +98,7 @@ export default function Privacy() {
 
       <Section title="Your Rights">
         <p>
-          You may decline advertising cookies at any time via the consent banner. Because we do not
+          Advertising cookie consent is managed by Google directly. Because we do not
           collect personally identifiable information, there is no account to delete.
         </p>
       </Section>
