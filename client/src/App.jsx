@@ -36,12 +36,10 @@ export default function App() {
       {/* Header */}
       <Header />
 
-      {/* Top ad banner */}
-      {isHome && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4">
-          <AdBanner slot={window.__AD_SLOT_TOP__} />
-        </div>
-      )}
+      {/* Top ad banner — shown on all pages */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4">
+        <AdBanner slot={window.__AD_SLOT_TOP__} />
+      </div>
 
       <ScrollToTop />
       <div className="flex-1">
